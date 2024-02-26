@@ -8,11 +8,14 @@
     <script type="module">
         import { Emulator } from "./dist/chip8.js"
 
+        let rom = undefined
+
         const canvas = document.getElementById("canvas")
+        const fileInput = document.getElementById("file")
+        const startBtn = document.getElementById("startBtn")
 
         const emu = new Emulator(canvas)
 
-        const fileInput = document.getElementById("file")
         fileInput.addEventListener("change", event => {
             const file = event.target.files[0]
             if (!file) {
@@ -20,14 +23,34 @@
                 return
             }
 
-            emu.load(file)
+            const reader = new FileReader()
+            reader.onload = event => {
+                const result = event.target?.result
+                if (result instanceof ArrayBuffer) {
+                    rom = result
+                    console.log("Read rom", rom)
+                }
+            }
+            reader.readAsArrayBuffer(file)
         })
+
+        startBtn.addEventListener("click", event => {
+            if (!rom) {
+                console.error("Rom file must have been loaded")
+                return
+            }
+            emu.load(rom)
+            emu.start()
+        })
+
+
     </script>
 </head>
 
 <body>
     <input type="file" name="file" id="file">
     <canvas width="512" height="256" id="canvas"></canvas>
+    <button id="startBtn">Start emulation</button>
 </body>
 
 </html>
