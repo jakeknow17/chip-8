@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JK Chip-8</title>
+    <script type="module">
+        import { Emulator } from "./dist/chip8.js"
+
+        const canvas = document.getElementById("canvas")
+
+        const emu = new Emulator()
+
+        const fileInput = document.getElementById("file")
+        fileInput.addEventListener("change", event => {
+            const file = event.target.files[0]
+            if (!file) {
+                console.log("No file selected")
+                return
+            }
+
+            emu.load(file)
+        })
+    </script>
+</head>
+
+<body>
+    <input type="file" name="file" id="file">
+    <canvas width="512" height="256" id="canvas"></canvas>
+</body>
+
+</html>
