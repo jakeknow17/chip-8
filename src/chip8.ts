@@ -1,4 +1,5 @@
-import { CanvasDisplay } from "./display.js"
+import { AnimationTimer } from "./browser/animationTimer.js"
+import { CanvasDisplay } from "./browser/canvasDisplay.js"
 import { Emulator } from "./emulator.js"
 
 let rom: ArrayBuffer | undefined = undefined
@@ -9,8 +10,9 @@ if (!canvas)
 const fileInput = document.getElementById("file")
 const startBtn = document.getElementById("startBtn")
 
-const display = new CanvasDisplay(canvas)
-const emu = new Emulator(display)
+const display = new CanvasDisplay(canvas);
+const timer = new AnimationTimer();
+const emu = new Emulator(display, timer);
 
 fileInput?.addEventListener("change", event => {
     if (!event.target)

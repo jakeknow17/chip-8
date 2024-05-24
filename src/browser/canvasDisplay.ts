@@ -1,9 +1,6 @@
 const BYTE_SIZE = 8
 
-export interface Display {
-  clear(): void;
-  drawSprite(sprite: Uint8Array, x: number, y: number): boolean;
-}
+import { Display } from "../interfaces/display.js"
 
 export class CanvasDisplay implements Display {
     static readonly SCREEN_WIDTH = 64;
