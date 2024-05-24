@@ -28,7 +28,7 @@ export class Emulator {
 
   initialize() {
     this.#pc = Emulator.PROG_START_ADDR;
-    this.sp = Emulator.STACK_SIZE;
+    this.sp = 0;
     this.#registers.fill(0);
     this.#registerI = 0;
   }
@@ -101,20 +101,66 @@ export class Emulator {
         if (instByte1 === 0xe0)
           this.#display.clear();
         // 00EE - RET
-        // TODO: Implement RET - Return from a subroutine.
+        if (instByte1 === 0xee) {
+          this.#pc = this.stack[--this.sp];
+          return;
+        }
         break;
       case 0x1:
         // 1nnn - JP addr
         this.#pc = inst & 0xfff;
-        break;
+        return;
       case 0x2:
         // 2nnn - CALL addr
-        // TODO: Implement CALL - Call subroutine at nnn.
-        break;
+        this.stack[this.sp++] = this.#pc + 2;
+        this.#pc = inst & 0xfff;
+        return;
       case 0x3:
         // 3xkk - SE Vx, byte
         if (this.#registers[instNibble1] === instByte1)
           this.#pc += 2;
+        // Fx55 - LD [I], Vx
+        else if (instByte1 === 0x55) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#memory[this.#registerI + i] = this.#registers[i];
+          }
+        }
+        // Fx65 - LD Vx, [I]
+        else if (instByte1 === 0x65) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#registers[i] = this.#memory[this.#registerI + i];
+          }
+        }
+        // Fx55 - LD [I], Vx
+        else if (instByte1 === 0x55) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#memory[this.#registerI + i] = this.#registers[i];
+          }
+        }
+        // Fx65 - LD Vx, [I]
+        else if (instByte1 === 0x65) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#registers[i] = this.#memory[this.#registerI + i];
+          }
+        }
+        // Fx55 - LD [I], Vx
+        else if (instByte1 === 0x55) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#memory[this.#registerI + i] = this.#registers[i];
+          }
+        }
+        // Fx65 - LD Vx, [I]
+        else if (instByte1 === 0x65) {
+          // TODO: Check if wrap around in case of reaching max memory addr
+          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
+            this.#registers[i] = this.#memory[this.#registerI + i];
+          }
+        }
         break;
       case 0x4:
         // 4xkk - SNE Vx, byte
@@ -188,7 +234,7 @@ export class Emulator {
         break
       case 0xb:
         this.#pc = (inst & 0xfff) + this.#registers[0x0];
-        break;
+        return;
       case 0xc:
         break;
       case 0xd:
@@ -215,19 +261,19 @@ export class Emulator {
           this.#memory[this.#registerI + 2] = Math.floor(this.#registers[instNibble1] % 10); // Ones digit
         }
         // Fx55 - LD [I], Vx
-        else if (instByte1 === 0x55) {
-          // TODO: Check if wrap around in case of reaching max memory addr
-          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
-            this.#memory[this.#registerI + i] = this.#registers[i];
-          }
-        }
+        // else if (instByte1 === 0x55) {
+        //   // TODO: Check if wrap around in case of reaching max memory addr
+        //   for (let i = 0; i <= instNibble1; i++) {
+        //     this.#memory[this.#registerI + i] = this.#registers[i];
+        //   }
+        // }
         // Fx65 - LD Vx, [I]
-        else if (instByte1 === 0x65) {
-          // TODO: Check if wrap around in case of reaching max memory addr
-          for (let i = 0; i <= this.#registers[instNibble1]; i++) {
-            this.#registers[i] = this.#memory[this.#registerI + i];
-          }
-        }
+        // else if (instByte1 === 0x65) {
+        //   // TODO: Check if wrap around in case of reaching max memory addr
+        //   for (let i = 0; i <= instNibble1; i++) {
+        //     this.#registers[i] = this.#memory[this.#registerI + i];
+        //   }
+        // }
         else {
           console.error("Unsupported instruction! 0x" + inst.toString(16))
         }
@@ -245,10 +291,11 @@ export class Emulator {
 
     this.initialize();
     this.initializeChars();
+
     this.#display.clear();
 
     let count = 0;
-    while (count < 1_000) {
+    while (count < 2_000) {
       this.emulateCycle();
       count++;
     }
