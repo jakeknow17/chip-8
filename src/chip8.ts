@@ -1,4 +1,4 @@
-import { AnimationTimer } from "./browser/animationTimer.js"
+import { TimeoutTimer } from "./browser/timeoutTimer.js"
 import { CanvasDisplay } from "./browser/canvasDisplay.js"
 import { Emulator } from "./emulator.js"
 
@@ -11,7 +11,7 @@ const fileInput = document.getElementById("file")
 const startBtn = document.getElementById("startBtn")
 
 const display = new CanvasDisplay(canvas);
-const timer = new AnimationTimer();
+const timer = new TimeoutTimer();
 const emu = new Emulator(display, timer);
 
 fileInput?.addEventListener("change", event => {
