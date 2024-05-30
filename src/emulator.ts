@@ -326,4 +326,8 @@ export class Emulator {
   stop() {
     this.timer.stop();
   }
+
+  continue() {
+    this.timer.start();
+  }
 }
