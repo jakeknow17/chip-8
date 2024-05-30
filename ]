@@ -190,25 +190,23 @@ export class Emulator {
         else if ((instNibble3) === 0x5) {
           const diff = this.registers[instNibble1] - this.registers[instNibble2];
           this.registers[instNibble1] = diff; // Automatically truncates value to 8 bits
-          this.registers[0xf] = diff < 0 ? 0 : 1; // Overflow
+          this.registers[0xf] = diff < 0 ? 1 : 0; // Overflow
         }
         // 8xy6 - SHR Vx {, Vy}
         else if ((instNibble3) === 0x6) {
-          const flag = (this.registers[instNibble2] & 0x1) ? 1 : 0;
-          this.registers[instNibble1] = this.registers[instNibble2] >>> 1;
-          this.registers[0xf] = flag;
+          // Vy is ignored in this instruction
+          this.registers[instNibble1] >>>= 1;
         }
         // 8xy7 - SUBN Vx, Vy
         else if ((instNibble3) === 0x7) {
           const diff = this.registers[instNibble2] - this.registers[instNibble1];
           this.registers[instNibble1] = diff; // Automatically truncates value to 8 bits
-          this.registers[0xf] = diff < 0 ? 0 : 1; // Overflow
+          this.registers[0xf] = diff < 0 ? 1 : 0; // Overflow
         }
         // 8xyE - SHL Vx, Vy
         else if ((instNibble3) === 0xe) {
-          const flag = (this.registers[instNibble2] & 0x80) ? 1 : 0;
-          this.registers[instNibble1] = this.registers[instNibble2] << 1;
-          this.registers[0xf] = flag;
+          // Vy is ignored in this instruction
+          this.registers[instNibble1] <<= 1;
         }
         break
       case 0x9:

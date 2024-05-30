@@ -1,4 +1,4 @@
-import { Timer } from "../interfaces/timer.js"
+import { Timer } from "./interfaces/timer.js"
 
 export class TimeoutTimer implements Timer {
   private isStarted = false;
@@ -42,7 +42,6 @@ export class TimeoutTimer implements Timer {
   private loop(): void {
     const currTime = performance.now();
     const deltaTime = currTime - this.startTime;
-    console.log(deltaTime);
     const interval = Math.floor(1000 / this.ticksPerSecond);
 
     while ((deltaTime / interval) > this.ticksFromStart) {
