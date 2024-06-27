@@ -36,6 +36,8 @@ export class TimeoutTimer implements Timer {
   }
 
   setTicksPerSecond(ticks: number): void {
+    this.ticksFromStart = 0;
+    this.startTime = performance.now();
     this.ticksPerSecond = ticks;
   }
 
