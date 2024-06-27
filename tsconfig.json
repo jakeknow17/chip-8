@@ -8,10 +8,10 @@
     ],
     "module": "es6",
     "rootDir": "./src",
-    // "sourceMap": true,
     "outDir": "./dist",
     "removeComments": true,
     "esModuleInterop": true,
+    "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
@@ -23,5 +23,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "exclude": ["tests"]
 }

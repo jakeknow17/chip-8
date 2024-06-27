@@ -89,8 +89,6 @@ export class CanvasDisplay implements Display {
     drawSprite(sprite: Uint8Array, x: number, y: number): boolean {
         let collision = false;
 
-        console.log(sprite, x, y);
-
         for (let i = 0; i < sprite.length; i++) {
             const collided = this.drawByte(sprite[i], x, (y + i) % CanvasDisplay.SCREEN_HEIGHT);
             collision ||= collided;
