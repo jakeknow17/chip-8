@@ -79,17 +79,22 @@ export class CanvasDisplay implements Display {
 
         for (let i = 0; i < BYTE_SIZE; i++) {
             const isSet = Boolean(byte & (0x80 >> i))
-            collision ||= this.drawPixel(isSet, (x + i) % CanvasDisplay.SCREEN_WIDTH, y);
+            const collided = this.drawPixel(isSet, (x + i) % CanvasDisplay.SCREEN_WIDTH, y);
+            collision ||= collided;
         }
 
         return collision
     }
 
     drawSprite(sprite: Uint8Array, x: number, y: number): boolean {
-        let collision = false
+        let collision = false;
 
-        for (let i = 0; i < sprite.length; i++)
-            collision ||= this.drawByte(sprite[i], x, (y + i) % CanvasDisplay.SCREEN_HEIGHT)
+        console.log(sprite, x, y);
+
+        for (let i = 0; i < sprite.length; i++) {
+            const collided = this.drawByte(sprite[i], x, (y + i) % CanvasDisplay.SCREEN_HEIGHT);
+            collision ||= collided;
+        }
 
         return collision
     }

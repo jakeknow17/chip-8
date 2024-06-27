@@ -1,4 +1,4 @@
-import { TimeoutTimer } from "../dist/timeoutTimer.js"
+import { TimeoutTimer } from "../dist/browser/timeoutTimer.js"
 import { CanvasDisplay } from "../dist/browser/canvasDisplay.js"
 import { BrowserKeyboard } from "../dist/browser/browserKeyboard.js"
 import { Emulator } from "../dist/emulator.js"
