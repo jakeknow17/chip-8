@@ -1,6 +1,7 @@
 import { TimeoutTimer } from "../dist/browser/timeoutTimer.js"
 import { CanvasDisplay } from "../dist/browser/canvasDisplay.js"
 import { BrowserKeyboard } from "../dist/browser/browserKeyboard.js"
+import { BrowserSound } from "../dist/browser/browserSound.js"
 import { Emulator } from "../dist/emulator.js"
 
 let rom = undefined;
@@ -14,7 +15,8 @@ const continueBtn = document.getElementById("continueBtn");
 const display = new CanvasDisplay(canvas);
 const cycleTimer = new TimeoutTimer();
 const keyboard = new BrowserKeyboard();
-const emu = new Emulator(display, cycleTimer, keyboard);
+const sound = new BrowserSound();
+const emu = new Emulator(display, cycleTimer, keyboard, sound);
 
 fileInput?.addEventListener("change", event => {
   if (!event.target)

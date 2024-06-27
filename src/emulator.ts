@@ -1,6 +1,7 @@
 import { Display } from "./interfaces/display.js"
 import { Timer } from "./interfaces/timer.js";
 import { Keyboard } from "./interfaces/keyboard.js";
+import { Sound } from "./interfaces/sound.js";
 
 export class Emulator {
   static readonly MEM_SIZE = 4096;
@@ -11,6 +12,7 @@ export class Emulator {
   private display: Display;
   private timer: Timer;
   private keyboard: Keyboard;
+  private sound: Sound;
 
   private memory = new Uint8Array(Emulator.MEM_SIZE);
   private stack = new Uint16Array(Emulator.STACK_SIZE);
@@ -26,10 +28,11 @@ export class Emulator {
 
   private waiting = false;
 
-  constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard) {
+  constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound) {
     this.display = display;
     this.timer = cycleTimer;
     this.keyboard = keyboard;
+    this.sound = sound;
     cycleTimer.setCallback(this.emulateCycle.bind(this));
     this.initialize();
   }
@@ -90,8 +93,15 @@ export class Emulator {
     if (this.dt > 0) {
       this.dt--;
     }
+
     if (this.st > 0) {
+      if (!this.sound.isPlaying())
+        this.sound.start();
       this.st--;
+    }
+    else {
+      if (this.sound.isPlaying())
+        this.sound.stop();
     }
   }
 
@@ -268,7 +278,7 @@ export class Emulator {
           this.dt = this.registers[instNibble1];
         }
         // Fx18 - LD ST, Vx
-        else if (instByte1 === 0x15) {
+        else if (instByte1 === 0x18) {
           this.st = this.registers[instNibble1];
         }
         // Fx1E - ADD I, Vx
