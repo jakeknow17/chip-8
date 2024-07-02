@@ -8,7 +8,7 @@ export class BrowserSound implements Sound {
   private gainNode: GainNode;
   private oscillator: OscillatorNode | null;
 
-  constructor(frequency = 440, volume = 0.5) {
+  constructor(frequency = 440, volume = 0.25) {
     this.frequency = frequency;
     // Clamp volume between 0.0 and 1.0
     volume = Math.min(Math.max(volume, 0.0), 1.0);
