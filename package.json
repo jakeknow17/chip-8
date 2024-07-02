@@ -2,21 +2,26 @@
   "name": "chip-8",
   "version": "1.0.0",
   "description": "This repository is a simple, lightweight Javascript Chip-8 emulator.",
-  "main": "index.js",
+  "main": "dist/index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
+    "build": "tsc --build && webpack --mode production",
+    "clean": "tsc --build --clean && rimraf --glob web/dist/*",
     "test": "jest"
   },
   "author": "Jacob Knowlton",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^29.5.12",
+    "@webpack-cli/generators": "^3.0.7",
     "jest": "^29.7.0",
+    "rimraf": "^5.0.7",
     "ts-jest": "^29.1.5",
-    "typescript": "^5.5.2"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.2",
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4"
   }
 }

@@ -12,6 +12,7 @@
     "removeComments": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
+    "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitAny": true,
@@ -24,5 +25,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
+  "include": ["src/**/*"],
   "exclude": ["tests"]
 }
