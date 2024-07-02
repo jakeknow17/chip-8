@@ -46,7 +46,7 @@ export class TimeoutTimer implements Timer {
     const deltaTime = currTime - this.startTime;
     const interval = Math.floor(1000 / this.ticksPerSecond);
 
-    while ((deltaTime / interval) > this.ticksFromStart) {
+    while (this.isStarted && (deltaTime / interval) > this.ticksFromStart) {
       this.callback()
       this.ticksFromStart++;
     }
