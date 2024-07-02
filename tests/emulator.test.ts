@@ -5,6 +5,10 @@ import { Keyboard } from "../src/interfaces/keyboard";
 import { Sound } from "../src/interfaces/sound";
 
 class MockDisplay implements Display {
+  redraw = jest.fn();
+  setExtended = jest.fn();
+  setOnColor = jest.fn();
+  setOffColor = jest.fn();
   clear = jest.fn();
   drawSprite = jest.fn(() => false);
 }
