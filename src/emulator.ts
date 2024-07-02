@@ -39,10 +39,10 @@ export class Emulator {
 
   load(rom: Uint8Array) {
     this.rom = new Uint8Array(rom);
-    this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }
 
   private initialize() {
+    this.memory.fill(0);
     this.pc = Emulator.PROG_START_ADDR;
     this.sp = 0;
     this.registers.fill(0);
@@ -132,14 +132,24 @@ export class Emulator {
 
     switch (instNibble0) {
       case 0x0:
+        // 00Cn - SCD nibble
         // 00E0 - CLS
         if (instByte1 === 0xe0)
           this.display.clear();
         // 00EE - RET
-        if (instByte1 === 0xee) {
+        else if (instByte1 === 0xee) {
           this.pc = this.stack[--this.sp];
           return;
         }
+        // 00FB - SCR
+        // 00FC - SCL
+        // 00FD - EXIT
+        // 00FE - LOW
+        else if (instByte1 === 0xfe)
+          this.display.setExtended(false);
+        // 00FF - HIGH
+        else if (instByte1 === 0xff)
+          this.display.setExtended(true);
         break;
       case 0x1:
         // 1nnn - JP addr
@@ -332,9 +342,12 @@ export class Emulator {
   }
 
   reset() {
+    this.timer.stop();
     this.initialize();
     this.initializeChars();
     this.display.clear();
+    if (this.rom)
+      this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }
 
   start() {
