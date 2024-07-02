@@ -1,11 +1,3 @@
-import { TimeoutTimer } from "../dist/browser/timeoutTimer.js";
-import { CanvasDisplay } from "../dist/browser/canvasDisplay.js";
-import { BrowserKeyboard } from "../dist/browser/browserKeyboard.js";
-import { BrowserSound } from "../dist/browser/browserSound.js";
-import { Emulator } from "../dist/emulator.js";
-
-let rom = undefined;
-
 const canvas = document.getElementById("canvas");
 const fileInput = document.getElementById("file");
 const startBtn = document.getElementById("startBtn");
@@ -15,11 +7,9 @@ const speedSlider = document.getElementById("speed");
 const frequencySlider = document.getElementById("frequency");
 const volumeSlider = document.getElementById("volume");
 
-const display = new CanvasDisplay(canvas);
-const cycleTimer = new TimeoutTimer();
-const keyboard = new BrowserKeyboard();
-const sound = new BrowserSound();
-const emu = new Emulator(display, cycleTimer, keyboard, sound);
+const emu = new Chip8.WebEmulator(canvas);
+
+let rom = undefined;
 
 fileInput?.addEventListener("change", event => {
   if (!event.target)
@@ -60,14 +50,14 @@ continueBtn?.addEventListener("click", _ => {
 })
 
 speedSlider?.addEventListener("input", event => {
-  cycleTimer.setTicksPerSecond(event.target.value);
+  emu.setEmulationSpeed(event.target.value);
   console.log(event.target.value);
 })
 
 frequencySlider?.addEventListener("input", event => {
-  sound.setFrequency(event.target.value);
+  emu.setSoundFrequency(event.target.value);
 })
 
 volumeSlider?.addEventListener("input", event => {
-  sound.setVolume(event.target.value);
+  emu.setSoundVolume(event.target.value);
 })
