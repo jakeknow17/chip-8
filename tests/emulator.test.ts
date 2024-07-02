@@ -11,6 +11,10 @@ class MockDisplay implements Display {
   setOffColor = jest.fn();
   clear = jest.fn();
   drawSprite = jest.fn(() => false);
+  scrollDown = jest.fn();
+  scrollUp = jest.fn();
+  scrollRight = jest.fn();
+  scrollLeft = jest.fn();
 }
 
 class MockTimer implements Timer {

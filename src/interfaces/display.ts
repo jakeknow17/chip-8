@@ -7,4 +7,8 @@ export interface Display {
   setExtended(extended: boolean): void;
   setOnColor(color: HexColor): void;
   setOffColor(color: HexColor): void;
+  scrollDown(scrollAmt: number): void;
+  scrollUp(scrollAmt: number): void;
+  scrollRight(scrollAmt: number): void;
+  scrollLeft(scrollAmt: number): void;
 }

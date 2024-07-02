@@ -133,8 +133,10 @@ export class Emulator {
     switch (instNibble0) {
       case 0x0:
         // 00Cn - SCD nibble
+        if (instNibble2 === 0xc)
+          this.display.scrollDown(instNibble3);
         // 00E0 - CLS
-        if (instByte1 === 0xe0)
+        else if (instByte1 === 0xe0)
           this.display.clear();
         // 00EE - RET
         else if (instByte1 === 0xee) {
@@ -142,7 +144,11 @@ export class Emulator {
           return;
         }
         // 00FB - SCR
+        else if (instByte1 === 0xfb)
+          this.display.scrollRight(4);
         // 00FC - SCL
+        else if (instByte1 === 0xfc)
+          this.display.scrollLeft(4);
         // 00FD - EXIT
         // 00FE - LOW
         else if (instByte1 === 0xfe)
@@ -328,7 +334,7 @@ export class Emulator {
 
     this.pc += 2;
   }
-  
+
   setEmulationSpeed(ticksPerSecond: number) {
     this.timer.setTicksPerSecond(ticksPerSecond);
   }
