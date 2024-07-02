@@ -105,7 +105,7 @@ export class Emulator {
     }
   }
 
-  private emulateCycle() {
+  emulateCycle() {
     this.updateTimers()
 
     if (this.waiting)
