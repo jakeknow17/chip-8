@@ -1,4 +1,4 @@
-import { Timer } from "../interfaces/timer.js"
+import { Timer } from "./interfaces/timer.js"
 
 export class TimeoutTimer implements Timer {
   private isStarted = false;
