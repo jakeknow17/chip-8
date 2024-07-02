@@ -42,14 +42,14 @@ export class Emulator {
     this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }
 
-  initialize() {
+  private initialize() {
     this.pc = Emulator.PROG_START_ADDR;
     this.sp = 0;
     this.registers.fill(0);
     this.registerI = 0;
   }
 
-  initializeChars() {
+  private initializeChars() {
     const chars = new Uint8Array([
       // Character 0
       0xF0, 0x90, 0x90, 0x90, 0xF0,
@@ -89,7 +89,7 @@ export class Emulator {
     this.memory.set(chars);
   }
 
-  updateTimers() {
+  private updateTimers() {
     if (this.dt > 0) {
       this.dt--;
     }
@@ -105,7 +105,7 @@ export class Emulator {
     }
   }
 
-  emulateCycle() {
+  private emulateCycle() {
     this.updateTimers()
 
     if (this.waiting)
@@ -318,6 +318,24 @@ export class Emulator {
 
     this.pc += 2;
   }
+  
+  setEmulationSpeed(ticksPerSecond: number) {
+    this.timer.setTicksPerSecond(ticksPerSecond);
+  }
+
+  setSoundFrequency(freqHz: number) {
+    this.sound.setFrequency(freqHz);
+  }
+
+  setSoundVolume(volume: number) {
+    this.sound.setVolume(volume);
+  }
+
+  reset() {
+    this.initialize();
+    this.initializeChars();
+    this.display.clear();
+  }
 
   start() {
     if (!this.rom) {
@@ -325,15 +343,12 @@ export class Emulator {
       return;
     }
 
-    this.initialize();
-    this.initializeChars();
-
-    this.display.clear();
+    this.reset();
 
     this.timer.start();
   }
 
-  stop() {
+  pause() {
     this.timer.stop();
   }
 
