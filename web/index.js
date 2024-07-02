@@ -1,7 +1,7 @@
 const canvas = document.getElementById("canvas");
 const fileInput = document.getElementById("file");
 const startBtn = document.getElementById("startBtn");
-const stopBtn = document.getElementById("stopBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 const continueBtn = document.getElementById("continueBtn");
 const resetBtn = document.getElementById("resetBtn");
 const speedSlider = document.getElementById("speed");
@@ -42,8 +42,8 @@ startBtn?.addEventListener("click", _ => {
   emu.start()
 })
 
-stopBtn?.addEventListener("click", _ => {
-  emu.stop();
+pauseBtn?.addEventListener("click", _ => {
+  emu.pause();
 })
 
 continueBtn?.addEventListener("click", _ => {
