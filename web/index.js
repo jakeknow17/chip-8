@@ -3,6 +3,7 @@ const fileInput = document.getElementById("file");
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
 const continueBtn = document.getElementById("continueBtn");
+const resetBtn = document.getElementById("resetBtn");
 const speedSlider = document.getElementById("speed");
 const frequencySlider = document.getElementById("frequency");
 const volumeSlider = document.getElementById("volume");
@@ -47,6 +48,10 @@ stopBtn?.addEventListener("click", _ => {
 
 continueBtn?.addEventListener("click", _ => {
   emu.continue();
+})
+
+resetBtn?.addEventListener("click", _ => {
+  emu.reset();
 })
 
 speedSlider?.addEventListener("input", event => {
