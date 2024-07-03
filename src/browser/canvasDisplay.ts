@@ -8,20 +8,34 @@ export class CanvasDisplay implements Display {
   static readonly HIGH_RES_WIDTH = 128;
   static readonly HIGH_RES_HEIGHT = 64;
 
+  static readonly NUM_LAYERS = 2;
+
   private screenWidth = CanvasDisplay.LOW_RES_WIDTH;
   private screenHeight = CanvasDisplay.LOW_RES_HEIGHT;
 
-  canvas: HTMLCanvasElement
-  ctx: CanvasRenderingContext2D
-  resizeObserver: ResizeObserver
+  private canvas: HTMLCanvasElement
+  private ctx: CanvasRenderingContext2D
+  private resizeObserver: ResizeObserver
 
-  screen: Array<Array<Boolean>>
+  private screen: Array<Array<Boolean>>
 
-  width: number
-  height: number
+  private width: number
+  private height: number
 
-  offColor = "#996700"
-  onColor = "#ffcc01"
+  private activeLayer = 0;
+  private isLayerDirty = new Array(CanvasDisplay.NUM_LAYERS).fill(false);
+  // TODO: Set different layer colors
+  private layerColors: {
+    color00: HexColor,
+    color01: HexColor,
+    color10: HexColor,
+    color11: HexColor
+  } = {
+      color00: "#996700",
+      color01: "#ffcc01",
+      color10: "#996700",
+      color11: "#ffcc01",
+    }
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -48,32 +62,48 @@ export class CanvasDisplay implements Display {
     this.resizeObserver.observe(canvas)
 
     // Setup screen
-    this.screen = this.createScreen();
+    this.screen = this.createBlankScreen();
     this.clear()
   }
 
-  private createScreen(): Array<Array<boolean>> {
-    return Array.from({ length: this.screenHeight }, () =>
-      Array(this.screenWidth).fill(false)
-    );
+  private createBlankScreen(): Array<Array<boolean>> {
+    return Array.from({ length: CanvasDisplay.NUM_LAYERS }, () => Array(this.screenWidth * this.screenHeight).fill(false))
+  }
+
+  private getColor(x: number, y: number): HexColor {
+    const idx = y * this.screenWidth + x;
+    const layer0Pixel = this.screen[0][idx];
+    const layer1Pixel = this.screen[1][idx];
+
+    if (!layer0Pixel && !layer1Pixel)
+      return this.layerColors.color00;
+    else if (layer0Pixel && !layer1Pixel)
+      return this.layerColors.color01;
+    else if (!layer0Pixel && layer1Pixel)
+      return this.layerColors.color10;
+    else
+      return this.layerColors.color11
   }
 
   clear() {
     // Clear the screen representation
-    for (let i = 0; i < this.screenHeight; i++) {
+    for (let i = 0; i < this.screen.length; i++) {
       this.screen[i].fill(false);
     }
 
+    this.isLayerDirty.fill(false);
+
     // Clear the screen
-    this.ctx.fillStyle = this.offColor
+    this.ctx.fillStyle = this.layerColors.color00;
     this.ctx.fillRect(0, 0, this.width, this.height)
   }
 
   drawPixel(set: boolean, x: number, y: number) {
-    const prev = this.screen[y][x]
-    this.screen[y][x] = this.screen[y][x] !== set
+    const idx = y * this.screenWidth + x;
+    const prev = this.screen[this.activeLayer][idx];
+    this.screen[this.activeLayer][idx] = this.screen[this.activeLayer][idx] !== set
 
-    const collision = prev && !this.screen[y][x]
+    const collision = prev && !this.screen[this.activeLayer][idx]
 
     return collision
   }
@@ -91,6 +121,8 @@ export class CanvasDisplay implements Display {
   }
 
   drawSprite(sprite: Uint8Array, x: number, y: number, isWide = false): boolean {
+    this.isLayerDirty[this.activeLayer] = true;
+
     let collision = false;
 
     if (isWide) { // This should only ever be used with 16x16 sprites
@@ -113,16 +145,16 @@ export class CanvasDisplay implements Display {
 
   drawScreen(): void {
     // Clear the screen
-    this.ctx.fillStyle = this.offColor;
+    this.ctx.fillStyle = this.layerColors.color00;
     this.ctx.fillRect(0, 0, this.width, this.height);
 
     const xStep = this.width / this.screenWidth
     const yStep = this.height / this.screenHeight
 
-    for (let i = 0; i < this.screenHeight; i++) {
-      for (let j = 0; j < this.screenWidth; j++) {
-        this.ctx.fillStyle = this.screen[i][j] ? this.onColor : this.offColor;
-        this.ctx.fillRect(j * xStep, i * yStep, xStep, yStep)
+    for (let y = 0; y < this.screenHeight; y++) {
+      for (let x = 0; x < this.screenWidth; x++) {
+        this.ctx.fillStyle = this.getColor(x, y);
+        this.ctx.fillRect(x * xStep, y * yStep, xStep, yStep)
       }
     }
   }
@@ -136,52 +168,44 @@ export class CanvasDisplay implements Display {
       this.screenWidth = CanvasDisplay.LOW_RES_WIDTH;
       this.screenHeight = CanvasDisplay.LOW_RES_HEIGHT;
     }
-    this.screen = this.createScreen();
-  }
-
-  setOnColor(color: HexColor): void {
-    this.onColor = color;
-  }
-
-  setOffColor(color: HexColor): void {
-    this.offColor = color;
+    this.screen = this.createBlankScreen();
   }
 
   scrollDown(scrollAmt: number): void {
-    scrollAmt = ((scrollAmt % this.screenHeight) + this.screenHeight) % this.screenHeight;
-    this.screen.splice(this.screenHeight - scrollAmt, scrollAmt);
-    this.screen = [
-      ...Array.from({ length: scrollAmt }, () => Array(this.screenWidth).fill(false)),
-      ...this.screen,
-    ];
-    this.drawScreen();
+    for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
+      if (!this.isLayerDirty[layer]) continue;
+      for (let i = this.screen[layer].length - 1; i >= 0; i--)
+        this.screen[layer][i] = (i >= this.screenWidth * scrollAmt) ? this.screen[layer][i - (this.screenWidth * scrollAmt)] : false;
+    }
   }
 
   scrollUp(scrollAmt: number): void {
-    scrollAmt = ((scrollAmt % this.screenHeight) + this.screenHeight) % this.screenHeight;
-    this.screen.splice(0, scrollAmt);
-    this.screen = [
-      ...this.screen,
-      ...Array.from({ length: scrollAmt }, () => Array(this.screenWidth).fill(false)),
-    ];
-    this.drawScreen();
+    for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
+      if (!this.isLayerDirty[layer]) continue;
+      for (let i = 0; i < this.screen[layer].length; i++)
+        this.screen[layer][i] = (i < (this.screen[layer].length - this.screenWidth * scrollAmt)) ? this.screen[layer][i + (this.screenWidth * scrollAmt)] : false;
+    }
   }
 
   scrollRight(scrollAmt: number): void {
-    scrollAmt = ((scrollAmt % this.screenWidth) + this.screenWidth) % this.screenWidth;
-    for (let i = 0; i < this.screenHeight; i++) {
-      this.screen[i].splice(this.screenWidth - scrollAmt, scrollAmt);
-      this.screen[i] = [...Array(scrollAmt).fill(false), ...this.screen[i]];
+    for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
+      if (!this.isLayerDirty[layer]) continue;
+      for (let i = 0; i < this.screen[layer].length; i += this.screenWidth) {
+        for (let j = this.screenWidth - 1; j >= 0; j--) {
+          this.screen[layer][i + j] = (j > scrollAmt - 1) ? this.screen[layer][i + j - scrollAmt] : false;
+        }
+      }
     }
-    this.drawScreen();
   }
 
   scrollLeft(scrollAmt: number): void {
-    scrollAmt = ((scrollAmt % this.screenWidth) + this.screenWidth) % this.screenWidth;
-    for (let i = 0; i < this.screenHeight; i++) {
-      this.screen[i].splice(0, scrollAmt);
-      this.screen[i] = [...this.screen[i], ...Array(scrollAmt).fill(false)];
+    for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
+      if (!this.isLayerDirty[layer]) continue;
+      for (let i = 0; i < this.screen[layer].length; i += this.screenWidth) {
+        for (let j = 0; j < this.screenWidth; j++) {
+          this.screen[layer][i + j] = (j < this.screenWidth - scrollAmt) ? this.screen[layer][i + j + scrollAmt] : false;
+        }
+      }
     }
-    this.drawScreen();
   }
 }

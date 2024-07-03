@@ -154,6 +154,9 @@ export class Emulator {
         // 00Cn - SCD nibble
         if (instNibble2 === 0xc)
           this.display.scrollDown(instNibble3);
+        // 00Dn - SCU nibble
+        else if (instNibble2 === 0xd)
+          this.display.scrollUp(instNibble3);
         // 00E0 - CLS
         else if (instByte1 === 0xe0)
           this.display.clear();
