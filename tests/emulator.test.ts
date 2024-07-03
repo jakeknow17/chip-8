@@ -28,6 +28,7 @@ class MockTimer implements Timer {
 class MockKeyboard implements Keyboard {
   isPressed = jest.fn();
   waitKey = jest.fn(() => Promise.resolve(0));
+  clearWait = jest.fn(() => false);
 }
 
 class MockSound implements Sound {

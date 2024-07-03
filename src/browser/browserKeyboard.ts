@@ -18,6 +18,8 @@ export class BrowserKeyboard implements Keyboard {
     0xA: false, 0x0: false, 0xB: false, 0xF: false
   };
 
+  private waitingHandler: ((event: KeyboardEvent) => void) | null;
+
   constructor() {
     document.addEventListener('keydown', (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
@@ -32,6 +34,8 @@ export class BrowserKeyboard implements Keyboard {
         this.pressedKeys[this.keyMap[key]] = false;
       }
     });
+
+    this.waitingHandler = null;
   }
 
   isPressed(key: number): boolean {
@@ -46,10 +50,22 @@ export class BrowserKeyboard implements Keyboard {
         const key = event.key.toLowerCase();
         if (key in this.keyMap) {
           document.removeEventListener("keyup", onKeyHandler);
+          this.waitingHandler = null;
           resolve(this.keyMap[key]);
         }
       }
+      this.waitingHandler = onKeyHandler;
       document.addEventListener("keyup", onKeyHandler);
     })
+  }
+
+  clearWait(): boolean {
+    if (this.waitingHandler) {
+      // waitKey waits for a keypress, so simulate a keypress to clear the event listener
+      document.dispatchEvent(new KeyboardEvent('keyup', {"key": Object.keys(this.keyMap)[0]}));
+      return true;
+    } else {
+      return false;
+    }
   }
 }

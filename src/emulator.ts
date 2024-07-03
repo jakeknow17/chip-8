@@ -27,6 +27,7 @@ export class Emulator {
   private st = 0;
 
   private waiting = false;
+  private halted = false;
 
   constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound) {
     this.display = display;
@@ -40,9 +41,15 @@ export class Emulator {
   load(rom: Uint8Array) {
     this.rom = new Uint8Array(rom);
   }
+  
+  private halt() {
+    this.halted = true;
+    this.pause();
+  }
 
   private initialize() {
     this.memory.fill(0);
+    this.stack.fill(0);
     this.pc = Emulator.PROG_START_ADDR;
     this.sp = 0;
     this.registers.fill(0);
@@ -106,6 +113,9 @@ export class Emulator {
   }
 
   emulateCycle() {
+    if (this.halted)
+      return;
+
     this.updateTimers()
 
     if (this.waiting)
@@ -120,6 +130,8 @@ export class Emulator {
     const instNibble3: number = instByte1 & 0xf;
 
     const inst = (instByte0 << 8) | instByte1;
+    
+    console.log(inst);
 
     // -------Instruction Layout-------
     // A Chip-8 instruction is 2 bytes.
@@ -150,6 +162,8 @@ export class Emulator {
         else if (instByte1 === 0xfc)
           this.display.scrollLeft(4);
         // 00FD - EXIT
+        else if (instByte1 === 0xfd)
+          this.halt();
         // 00FE - LOW
         else if (instByte1 === 0xfe)
           this.display.setExtended(false);
@@ -352,6 +366,8 @@ export class Emulator {
     this.initialize();
     this.initializeChars();
     this.display.clear();
+    this.display.setExtended(false);
+    this.keyboard.clearWait();
     if (this.rom)
       this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }
