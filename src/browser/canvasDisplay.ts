@@ -70,17 +70,10 @@ export class CanvasDisplay implements Display {
   }
 
   drawPixel(set: boolean, x: number, y: number) {
-    const xStep = this.width / this.screenWidth
-    const yStep = this.height / this.screenHeight
-
     const prev = this.screen[y][x]
     this.screen[y][x] = this.screen[y][x] !== set
 
     const collision = prev && !this.screen[y][x]
-
-    this.ctx.fillStyle = this.screen[y][x] ? this.onColor : this.offColor;
-
-    this.ctx.fillRect(x * xStep, y * yStep, xStep, yStep)
 
     return collision
   }
@@ -118,7 +111,7 @@ export class CanvasDisplay implements Display {
     return collision
   }
 
-  redraw(): void {
+  drawScreen(): void {
     // Clear the screen
     this.ctx.fillStyle = this.offColor;
     this.ctx.fillRect(0, 0, this.width, this.height);
@@ -161,7 +154,7 @@ export class CanvasDisplay implements Display {
       ...Array.from({ length: scrollAmt }, () => Array(this.screenWidth).fill(false)),
       ...this.screen,
     ];
-    this.redraw();
+    this.drawScreen();
   }
 
   scrollUp(scrollAmt: number): void {
@@ -171,7 +164,7 @@ export class CanvasDisplay implements Display {
       ...this.screen,
       ...Array.from({ length: scrollAmt }, () => Array(this.screenWidth).fill(false)),
     ];
-    this.redraw();
+    this.drawScreen();
   }
 
   scrollRight(scrollAmt: number): void {
@@ -180,7 +173,7 @@ export class CanvasDisplay implements Display {
       this.screen[i].splice(this.screenWidth - scrollAmt, scrollAmt);
       this.screen[i] = [...Array(scrollAmt).fill(false), ...this.screen[i]];
     }
-    this.redraw();
+    this.drawScreen();
   }
 
   scrollLeft(scrollAmt: number): void {
@@ -189,6 +182,6 @@ export class CanvasDisplay implements Display {
       this.screen[i].splice(0, scrollAmt);
       this.screen[i] = [...this.screen[i], ...Array(scrollAmt).fill(false)];
     }
-    this.redraw();
+    this.drawScreen();
   }
 }

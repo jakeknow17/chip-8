@@ -2,6 +2,7 @@ export interface Timer {
   start(): void;
   stop(): void;
   isRunning(): boolean;
-  setCallback(fun: () => void): void;
-  setTicksPerSecond(ticks: number): void;
+  setTickCallback(fun: () => void): void;
+  setDrawCallback(fun: () => void): void;
+  setTicksPerFrame(ticks: number): void;
 }

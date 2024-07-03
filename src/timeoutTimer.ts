@@ -1,26 +1,26 @@
 import { Timer } from "./interfaces/timer.js"
 
 export class TimeoutTimer implements Timer {
+  static readonly FRAMES_PER_SECOND = 60;
+
   private isStarted = false;
-  private ticksPerSecond: number = 60;
-  private callback: () => void = () => { };
+  private ticksPerFrame: number = 8;
+  private tickCallback: () => void = () => { };
+  private drawCallback: () => void = () => { };
 
   private startTime: number = 0;
-  private ticksFromStart: number = 0;
+  private framesFromStart: number = 0;
 
-  constructor(callback?: () => void) {
-    if (callback)
-      this.callback = callback;
-
+  constructor() {
     this.loop = this.loop.bind(this);
   }
 
   start(): void {
     this.isStarted = true;
-    this.ticksFromStart = 0;
+    this.framesFromStart = 0;
     this.startTime = performance.now();
-    const interval = Math.floor(1000 / this.ticksPerSecond);
-    setTimeout(this.loop, interval / 2);
+    const interval = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
+    setTimeout(this.loop, interval);
   }
 
   stop(): void {
@@ -31,27 +31,33 @@ export class TimeoutTimer implements Timer {
     return this.isStarted;
   }
 
-  setCallback(fun: () => void): void {
-    this.callback = fun;
+  setTickCallback(fun: () => void): void {
+    this.tickCallback = fun;
   }
 
-  setTicksPerSecond(ticks: number): void {
-    this.ticksFromStart = 0;
+  setDrawCallback(fun: () => void): void {
+    this.drawCallback = fun;
+  }
+
+  setTicksPerFrame(ticks: number): void {
+    this.framesFromStart = 0;
     this.startTime = performance.now();
-    this.ticksPerSecond = ticks;
+    this.ticksPerFrame = ticks;
   }
 
   private loop(): void {
     const currTime = performance.now();
     const deltaTime = currTime - this.startTime;
-    const interval = Math.floor(1000 / this.ticksPerSecond);
+    const interval = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
 
-    while (this.isStarted && (deltaTime / interval) > this.ticksFromStart) {
-      this.callback()
-      this.ticksFromStart++;
+    while (this.isStarted && (deltaTime / interval) > this.framesFromStart) {
+      for (let i = 0; i < this.ticksPerFrame; i++) {
+        this.tickCallback();
+      }
+      this.framesFromStart++;
+      this.drawCallback();
     }
 
-    if (this.isStarted)
-      setTimeout(this.loop, interval / 2);
+    setTimeout(this.loop, interval);
   }
 }
