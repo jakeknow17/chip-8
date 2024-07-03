@@ -5,7 +5,7 @@ import { Keyboard } from "../src/interfaces/keyboard";
 import { Sound } from "../src/interfaces/sound";
 
 class MockDisplay implements Display {
-  redraw = jest.fn();
+  drawScreen = jest.fn();
   setExtended = jest.fn();
   setOnColor = jest.fn();
   setOffColor = jest.fn();
@@ -18,16 +18,20 @@ class MockDisplay implements Display {
 }
 
 class MockTimer implements Timer {
-  setCallback = jest.fn();
+  setTickCallback = jest.fn();
+  setDrawCallback = jest.fn();
   start = jest.fn();
   stop = jest.fn();
   isRunning = jest.fn(() => false);
-  setTicksPerSecond = jest.fn();
+  setTicksPerFrame = jest.fn();
 }
 
 class MockKeyboard implements Keyboard {
   isPressed = jest.fn();
-  waitKey = jest.fn();
+  clearWait = jest.fn();
+  startWait = jest.fn();
+  getWaitKey = jest.fn(() => null);
+  clearWaitKey = jest.fn();
 }
 
 class MockSound implements Sound {

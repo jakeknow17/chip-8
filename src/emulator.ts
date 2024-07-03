@@ -4,7 +4,7 @@ import { Keyboard } from "./interfaces/keyboard.js";
 import { Sound } from "./interfaces/sound.js";
 
 export class Emulator {
-  static readonly MEM_SIZE = 4096;
+  static readonly MEM_SIZE = 0x10000;
   static readonly STACK_SIZE = 16;
   static readonly NUM_REGS = 16;
   static readonly PROG_START_ADDR = 0x200;
@@ -42,6 +42,7 @@ export class Emulator {
 
   load(rom: Uint8Array) {
     this.rom = new Uint8Array(rom);
+    this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }
 
   private halt() {
@@ -281,8 +282,17 @@ export class Emulator {
         this.registers[instNibble1] = randByte & instByte1;
         break;
       case 0xd:
-        const sprite = this.memory.slice(this.registerI, this.registerI + instNibble3);
-        if (this.display.drawSprite(sprite, this.registers[instNibble1], this.registers[instNibble2]))
+        let sprite: Uint8Array;
+        let isWide: boolean;
+        if (instNibble3 !== 0) {
+          sprite = this.memory.slice(this.registerI, this.registerI + instNibble3);
+          isWide = false;
+        }
+        else {
+          sprite = this.memory.slice(this.registerI, this.registerI + 32);
+          isWide = true;
+        }
+        if (this.display.drawSprite(sprite, this.registers[instNibble1], this.registers[instNibble2], isWide))
           this.registers[0xf] = 1;
         else
           this.registers[0xf] = 0;
