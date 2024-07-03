@@ -27,6 +27,7 @@ export class Emulator {
   private st = 0;
 
   private waiting = false;
+  private waitingReg = -1;
   private halted = false;
 
   constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound) {
@@ -34,14 +35,15 @@ export class Emulator {
     this.timer = cycleTimer;
     this.keyboard = keyboard;
     this.sound = sound;
-    cycleTimer.setCallback(this.emulateCycle.bind(this));
+    cycleTimer.setTickCallback(this.emulateCycle.bind(this));
+    cycleTimer.setDrawCallback(this.display.drawScreen.bind(this.display));
     this.initialize();
   }
 
   load(rom: Uint8Array) {
     this.rom = new Uint8Array(rom);
   }
-  
+
   private halt() {
     this.halted = true;
     this.pause();
@@ -118,8 +120,15 @@ export class Emulator {
 
     this.updateTimers()
 
-    if (this.waiting)
-      return;
+    if (this.waiting) {
+      if (this.keyboard.getWaitKey() !== null) {
+        this.registers[this.waitingReg] = this.keyboard.getWaitKey() as number;
+        this.keyboard.clearWaitKey();
+        this.waitingReg = -1;
+        this.waiting = false;
+      }
+      else return;
+    }
 
     const instByte0: number = this.memory[this.pc];
     const instByte1: number = this.memory[this.pc + 1];
@@ -130,8 +139,6 @@ export class Emulator {
     const instNibble3: number = instByte1 & 0xf;
 
     const inst = (instByte0 << 8) | instByte1;
-    
-    console.log(inst);
 
     // -------Instruction Layout-------
     // A Chip-8 instruction is 2 bytes.
@@ -297,11 +304,7 @@ export class Emulator {
         // Fx0A - LD Vx, K
         else if (instByte1 === 0x0a) {
           this.waiting = true;
-          const waitKey = this.keyboard.waitKey();
-          waitKey.then(value => {
-            this.registers[instNibble1] = value;
-            this.waiting = false;
-          })
+          this.keyboard.startWait();
         }
         // Fx15 - LD DT, Vx
         else if (instByte1 === 0x15) {
@@ -349,8 +352,8 @@ export class Emulator {
     this.pc += 2;
   }
 
-  setEmulationSpeed(ticksPerSecond: number) {
-    this.timer.setTicksPerSecond(ticksPerSecond);
+  setEmulationSpeed(ticksPerFrame: number) {
+    this.timer.setTicksPerFrame(ticksPerFrame);
   }
 
   setSoundFrequency(freqHz: number) {
@@ -365,9 +368,10 @@ export class Emulator {
     this.timer.stop();
     this.initialize();
     this.initializeChars();
+    this.waiting = false;
+    this.keyboard.clearWait();
     this.display.clear();
     this.display.setExtended(false);
-    this.keyboard.clearWait();
     if (this.rom)
       this.memory.set(this.rom, Emulator.PROG_START_ADDR);
   }

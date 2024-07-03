@@ -1,5 +1,7 @@
 export interface Keyboard {
   isPressed(key: number): boolean;
-  waitKey(): Promise<number>;
-  clearWait(): boolean;
+  clearWait(): void;
+  startWait(): void;
+  getWaitKey(): number | null;
+  clearWaitKey(): void;
 }

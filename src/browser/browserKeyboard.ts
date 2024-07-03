@@ -18,7 +18,8 @@ export class BrowserKeyboard implements Keyboard {
     0xA: false, 0x0: false, 0xB: false, 0xF: false
   };
 
-  private waitingHandler: ((event: KeyboardEvent) => void) | null;
+  private waiting: boolean;
+  private waitingKey: number | null;
 
   constructor() {
     document.addEventListener('keydown', (event: KeyboardEvent) => {
@@ -33,9 +34,14 @@ export class BrowserKeyboard implements Keyboard {
       if (key in this.keyMap) {
         this.pressedKeys[this.keyMap[key]] = false;
       }
+      if (this.waiting) {
+        this.waitingKey = this.keyMap[key];
+        this.waiting = false;
+      }
     });
 
-    this.waitingHandler = null;
+    this.waiting = false;
+    this.waitingKey = null;
   }
 
   isPressed(key: number): boolean {
@@ -44,28 +50,20 @@ export class BrowserKeyboard implements Keyboard {
     return this.pressedKeys[key];
   }
 
-  waitKey(): Promise<number> {
-    return new Promise(resolve => {
-      const onKeyHandler = (event: KeyboardEvent) => {
-        const key = event.key.toLowerCase();
-        if (key in this.keyMap) {
-          document.removeEventListener("keyup", onKeyHandler);
-          this.waitingHandler = null;
-          resolve(this.keyMap[key]);
-        }
-      }
-      this.waitingHandler = onKeyHandler;
-      document.addEventListener("keyup", onKeyHandler);
-    })
+  startWait(): void {
+    this.waiting = true;
   }
 
-  clearWait(): boolean {
-    if (this.waitingHandler) {
-      // waitKey waits for a keypress, so simulate a keypress to clear the event listener
-      document.dispatchEvent(new KeyboardEvent('keyup', {"key": Object.keys(this.keyMap)[0]}));
-      return true;
-    } else {
-      return false;
-    }
+  clearWait(): void {
+    this.waiting = false;
+    this.clearWaitKey();
+  }
+
+  getWaitKey(): number | null {
+    return this.waitingKey;
+  }
+
+  clearWaitKey(): void {
+    this.waitingKey = null;
   }
 }
