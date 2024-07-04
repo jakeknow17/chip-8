@@ -198,18 +198,33 @@ export class Emulator {
         return;
       case 0x3:
         // 3xkk - SE Vx, byte
-        if (this.registers[instNibble1] === instByte1)
-          this.pc += 2;
+        if (this.registers[instNibble1] === instByte1) {
+          const nextInstr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
+          if (nextInstr === 0xf000)
+            this.pc += 4;
+          else
+            this.pc += 2;
+        }
         break;
       case 0x4:
         // 4xkk - SNE Vx, byte
-        if (this.registers[instNibble1] !== instByte1)
-          this.pc += 2;
+        if (this.registers[instNibble1] !== instByte1) {
+          const nextInstr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
+          if (nextInstr === 0xf000)
+            this.pc += 4;
+          else
+            this.pc += 2;
+        }
         break;
       case 0x5:
         // 5xy0 - SE Vx, Vy
-        if (this.registers[instNibble1] === this.registers[instNibble2])
-          this.pc += 2;
+        if (this.registers[instNibble1] === this.registers[instNibble2]) {
+          const nextInstr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
+          if (nextInstr === 0xf000)
+            this.pc += 4;
+          else
+            this.pc += 2;
+        }
         // XO-Chip save
         else if (instNibble3 === 2) {
           for (let i = instNibble1; i <= instNibble2; i++)
@@ -280,8 +295,13 @@ export class Emulator {
       case 0x9:
         // 9xy0 - SNE Vx, Vy
         // TODO: Possibly check if the last nibble is 0
-        if (this.registers[instNibble1] !== this.registers[instNibble2])
-          this.pc += 2;
+        if (this.registers[instNibble1] !== this.registers[instNibble2]) {
+          const nextInstr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
+          if (nextInstr === 0xf000)
+            this.pc += 4;
+          else
+            this.pc += 2;
+        }
         break;
       case 0xa:
         const addr = inst & 0xfff;
