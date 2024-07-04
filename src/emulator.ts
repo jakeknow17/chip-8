@@ -210,6 +210,16 @@ export class Emulator {
         // 5xy0 - SE Vx, Vy
         if (this.registers[instNibble1] === this.registers[instNibble2])
           this.pc += 2;
+        // XO-Chip save
+        else if (instNibble3 === 2) {
+          for (let i = instNibble1; i <= instNibble2; i++)
+            this.memory[this.registerI + i - instNibble1] = this.registers[i];
+        }
+        // XO-Chip load
+        else if (instNibble3 === 2) {
+          for (let i = instNibble1; i <= instNibble2; i++)
+            this.registers[i] = this.memory[this.registerI + i - instNibble1];
+        }
         break;
       case 0x6:
         // 6xkk - LD Vx, byte
@@ -315,8 +325,22 @@ export class Emulator {
         }
         break;
       case 0xf:
+        // XO-Chip long addr
+        if ((inst & 0xfff) === 0x000) {
+          const addr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
+          this.registerI = addr;
+          this.pc += 2;
+        }
+        // XO-Chip plane
+        else if (instByte1 === 0x01) {
+          this.display.setPlaneBitmask(instNibble1 & 0x3);
+        }
+        // XO-Chip audio
+        else if ((inst & 0xfff) === 0x002) {
+          console.log("Audio not implemented");
+        }
         // Fx07 - LD Vx, DT
-        if (instByte1 === 0x07) {
+        else if (instByte1 === 0x07) {
           this.registers[instNibble1] = this.dt;
         }
         // Fx0A - LD Vx, K
@@ -351,6 +375,10 @@ export class Emulator {
           this.memory[this.registerI + 1] = Math.floor((this.registers[instNibble1] % 100) / 10); // Tens digit
           this.memory[this.registerI + 2] = Math.floor(this.registers[instNibble1] % 10); // Ones digit
         }
+        // XO-Chip pitch
+        else if (instByte1 === 0x3a) {
+          console.log("Pitch not implemented");
+        }
         // Fx55 - LD [I], Vx
         else if (instByte1 === 0x55) {
           // TODO: Check if wrap around in case of reaching max memory addr
@@ -374,7 +402,7 @@ export class Emulator {
         // Fx85 - LD Vx, R
         else if (instByte1 === 0x85) {
           for (let i = 0; i <= instNibble1; i++)
-             this.registers[i] = this.flagRegisters[i];
+            this.registers[i] = this.flagRegisters[i];
           // TODO: Make flag registers persistent
         }
         else {

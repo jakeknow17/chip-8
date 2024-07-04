@@ -18,6 +18,7 @@ export class CanvasDisplay implements Display {
   private resizeObserver: ResizeObserver
 
   private screen: Array<Array<Boolean>>
+  private prevScreen: Array<Array<Boolean>>
 
   private width: number
   private height: number
@@ -31,10 +32,10 @@ export class CanvasDisplay implements Display {
     color10: HexColor,
     color11: HexColor
   } = {
-      color00: "#996700",
-      color01: "#ffcc01",
-      color10: "#996700",
-      color11: "#ffcc01",
+      color00: "#996600",
+      color01: "#ffcc00",
+      color10: "#ff6600",
+      color11: "#662200",
     }
 
   constructor(canvas: HTMLCanvasElement) {
@@ -63,6 +64,7 @@ export class CanvasDisplay implements Display {
 
     // Setup screen
     this.screen = this.createBlankScreen();
+    this.prevScreen = this.createBlankScreen();
     this.clear()
 
     this.activePlanes[0] = true;
@@ -91,6 +93,7 @@ export class CanvasDisplay implements Display {
     // Clear the screen representation
     for (let i = 0; i < this.screen.length; i++) {
       this.screen[i].fill(false);
+      this.prevScreen[i].fill(false);
     }
 
     this.isLayerChanged.fill(false);
@@ -159,19 +162,24 @@ export class CanvasDisplay implements Display {
       return;
 
     // Clear the screen
-    this.ctx.fillStyle = this.layerColors.color00;
-    this.ctx.fillRect(0, 0, this.width, this.height);
+    // this.ctx.fillStyle = this.layerColors.color00;
+    // this.ctx.fillRect(0, 0, this.width, this.height);
 
     const xStep = this.width / this.screenWidth
     const yStep = this.height / this.screenHeight
 
     for (let y = 0; y < this.screenHeight; y++) {
       for (let x = 0; x < this.screenWidth; x++) {
+        const idx = y * this.screenWidth + x;
+        if (this.prevScreen[0][idx] === this.screen[0][idx] && this.prevScreen[1][idx] === this.screen[1][idx])
+          continue;
         this.ctx.fillStyle = this.getColor(x, y);
         this.ctx.fillRect(x * xStep, y * yStep, xStep, yStep)
       }
     }
-
+    for (let layer = 0; layer < this.screen.length; layer++) {
+      this.prevScreen[layer] = this.screen[layer].slice();
+    }
     this.isLayerChanged.fill(false);
   }
 
@@ -185,6 +193,11 @@ export class CanvasDisplay implements Display {
       this.screenHeight = CanvasDisplay.LOW_RES_HEIGHT;
     }
     this.screen = this.createBlankScreen();
+  }
+
+  setPlaneBitmask(plane: number): void {
+    this.activePlanes[0] = !!(plane & 0x1);
+    this.activePlanes[1] = !!(plane & 0x2);
   }
 
   scrollDown(scrollAmt: number): void {
