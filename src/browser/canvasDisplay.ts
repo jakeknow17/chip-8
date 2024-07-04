@@ -64,6 +64,8 @@ export class CanvasDisplay implements Display {
     // Setup screen
     this.screen = this.createBlankScreen();
     this.clear()
+
+    this.activePlanes[0] = true;
   }
 
   private createBlankScreen(): Array<Array<boolean>> {

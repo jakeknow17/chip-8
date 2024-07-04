@@ -2,14 +2,16 @@ import { Timer } from "./interfaces/timer.js"
 
 export class TimeoutTimer implements Timer {
   static readonly FRAMES_PER_SECOND = 60;
+  static readonly INTERVAL = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
 
   private isStarted = false;
   private ticksPerFrame: number = 8;
   private tickCallback: () => void = () => { };
   private drawCallback: () => void = () => { };
+  private timerCallback: () => void = () => { };
 
   private startTime: number = 0;
-  private framesFromStart: number = 0;
+  private lastTime: number = 0;
 
   constructor() {
     this.loop = this.loop.bind(this);
@@ -17,10 +19,9 @@ export class TimeoutTimer implements Timer {
 
   start(): void {
     this.isStarted = true;
-    this.framesFromStart = 0;
-    this.startTime = performance.now();
-    const interval = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
-    setTimeout(this.loop, interval);
+    this.lastTime = performance.now();
+    this.startTime = this.lastTime + TimeoutTimer.INTERVAL / 2;
+    setTimeout(this.loop, TimeoutTimer.INTERVAL);
   }
 
   stop(): void {
@@ -39,25 +40,27 @@ export class TimeoutTimer implements Timer {
     this.drawCallback = fun;
   }
 
+  setTimerCallback(fun: () => void): void {
+    this.timerCallback = fun;
+  }
+
   setTicksPerFrame(ticks: number): void {
-    this.framesFromStart = 0;
-    this.startTime = performance.now();
+    this.lastTime = performance.now();
+    this.startTime = this.lastTime + TimeoutTimer.INTERVAL / 2;
     this.ticksPerFrame = ticks;
   }
 
   private loop(): void {
-    const currTime = performance.now();
-    const deltaTime = currTime - this.startTime;
-    const interval = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
+    this.lastTime = performance.now();
 
-    while (this.isStarted && (deltaTime / interval) > this.framesFromStart) {
+    for (let frames = 0; (TimeoutTimer.INTERVAL < this.lastTime - this.startTime) && frames < 2; this.startTime += TimeoutTimer.INTERVAL, frames++) {
       for (let i = 0; i < this.ticksPerFrame; i++) {
         this.tickCallback();
       }
-      this.framesFromStart++;
-      this.drawCallback();
+      this.timerCallback();
     }
+    this.drawCallback();
 
-    setTimeout(this.loop, interval);
+    setTimeout(this.loop, TimeoutTimer.INTERVAL);
   }
 }

@@ -75,6 +75,7 @@ export class Emulator {
     this.sound = sound;
     cycleTimer.setTickCallback(this.emulateCycle.bind(this));
     cycleTimer.setDrawCallback(this.display.drawScreen.bind(this.display));
+    cycleTimer.setTimerCallback(this.updateTimers.bind(this));
     this.initialize();
   }
 
@@ -124,8 +125,6 @@ export class Emulator {
   emulateCycle() {
     if (this.halted)
       return;
-
-    this.updateTimers()
 
     if (this.waiting) {
       if (this.keyboard.getWaitKey() !== null) {
