@@ -126,9 +126,9 @@ export class CanvasDisplay implements Display {
     let collision = false;
 
     if (isWide) { // This should only ever be used with 16x16 sprites
-      for (let i = 0; i < Math.floor(sprite.length / 2); i++) {
-        const collided1 = this.drawByte(sprite[i], x, (y + i) % this.screenHeight);
-        const collided2 = this.drawByte(sprite[i], x + 1, (y + i) % this.screenHeight);
+      for (let i = 0; i < sprite.length; i += 2) {
+        const collided1 = this.drawByte(sprite[i],     x,     (y + i / 2) % this.screenHeight);
+        const collided2 = this.drawByte(sprite[i + 1], x + 8, (y + i / 2) % this.screenHeight);
         collision ||= collided1;
         collision ||= collided2;
       }
