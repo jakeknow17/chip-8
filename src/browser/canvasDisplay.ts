@@ -22,8 +22,8 @@ export class CanvasDisplay implements Display {
   private width: number
   private height: number
 
-  private activeLayer = 0;
-  private isLayerDirty = new Array(CanvasDisplay.NUM_LAYERS).fill(false);
+  private activePlanes = new Array(CanvasDisplay.NUM_LAYERS).fill(false); // Bitmask from 0 to 3 inclusive
+  private isLayerChanged = new Array(CanvasDisplay.NUM_LAYERS).fill(false);
   // TODO: Set different layer colors
   private layerColors: {
     color00: HexColor,
@@ -91,7 +91,7 @@ export class CanvasDisplay implements Display {
       this.screen[i].fill(false);
     }
 
-    this.isLayerDirty.fill(false);
+    this.isLayerChanged.fill(false);
 
     // Clear the screen
     this.ctx.fillStyle = this.layerColors.color00;
@@ -100,10 +100,15 @@ export class CanvasDisplay implements Display {
 
   drawPixel(set: boolean, x: number, y: number) {
     const idx = y * this.screenWidth + x;
-    const prev = this.screen[this.activeLayer][idx];
-    this.screen[this.activeLayer][idx] = this.screen[this.activeLayer][idx] !== set
 
-    const collision = prev && !this.screen[this.activeLayer][idx]
+    let collision = false;
+    for (let plane = 0; plane < this.activePlanes.length; plane++) {
+      if (!this.activePlanes[plane]) continue;
+      const prev = this.screen[plane][idx];
+      this.screen[plane][idx] = this.screen[plane][idx] !== set
+
+      collision ||= prev && !this.screen[plane][idx]
+    }
 
     return collision
   }
@@ -121,13 +126,17 @@ export class CanvasDisplay implements Display {
   }
 
   drawSprite(sprite: Uint8Array, x: number, y: number, isWide = false): boolean {
-    this.isLayerDirty[this.activeLayer] = true;
+
+    for (let plane = 0; plane < this.activePlanes.length; plane++) {
+      if (!this.activePlanes[plane]) continue;
+      this.isLayerChanged[plane] = true;
+    }
 
     let collision = false;
 
     if (isWide) { // This should only ever be used with 16x16 sprites
       for (let i = 0; i < sprite.length; i += 2) {
-        const collided1 = this.drawByte(sprite[i],     x,     (y + i / 2) % this.screenHeight);
+        const collided1 = this.drawByte(sprite[i], x, (y + i / 2) % this.screenHeight);
         const collided2 = this.drawByte(sprite[i + 1], x + 8, (y + i / 2) % this.screenHeight);
         collision ||= collided1;
         collision ||= collided2;
@@ -144,6 +153,9 @@ export class CanvasDisplay implements Display {
   }
 
   drawScreen(): void {
+    if (!this.isLayerChanged[0] && !this.isLayerChanged[1])
+      return;
+
     // Clear the screen
     this.ctx.fillStyle = this.layerColors.color00;
     this.ctx.fillRect(0, 0, this.width, this.height);
@@ -157,6 +169,8 @@ export class CanvasDisplay implements Display {
         this.ctx.fillRect(x * xStep, y * yStep, xStep, yStep)
       }
     }
+
+    this.isLayerChanged.fill(false);
   }
 
   setExtended(extended: boolean): void {
@@ -173,7 +187,7 @@ export class CanvasDisplay implements Display {
 
   scrollDown(scrollAmt: number): void {
     for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
-      if (!this.isLayerDirty[layer]) continue;
+      if (!this.activePlanes[layer]) continue;
       for (let i = this.screen[layer].length - 1; i >= 0; i--)
         this.screen[layer][i] = (i >= this.screenWidth * scrollAmt) ? this.screen[layer][i - (this.screenWidth * scrollAmt)] : false;
     }
@@ -181,7 +195,7 @@ export class CanvasDisplay implements Display {
 
   scrollUp(scrollAmt: number): void {
     for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
-      if (!this.isLayerDirty[layer]) continue;
+      if (!this.activePlanes[layer]) continue;
       for (let i = 0; i < this.screen[layer].length; i++)
         this.screen[layer][i] = (i < (this.screen[layer].length - this.screenWidth * scrollAmt)) ? this.screen[layer][i + (this.screenWidth * scrollAmt)] : false;
     }
@@ -189,7 +203,7 @@ export class CanvasDisplay implements Display {
 
   scrollRight(scrollAmt: number): void {
     for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
-      if (!this.isLayerDirty[layer]) continue;
+      if (!this.activePlanes[layer]) continue;
       for (let i = 0; i < this.screen[layer].length; i += this.screenWidth) {
         for (let j = this.screenWidth - 1; j >= 0; j--) {
           this.screen[layer][i + j] = (j > scrollAmt - 1) ? this.screen[layer][i + j - scrollAmt] : false;
@@ -200,7 +214,7 @@ export class CanvasDisplay implements Display {
 
   scrollLeft(scrollAmt: number): void {
     for (let layer = 0; layer < CanvasDisplay.NUM_LAYERS; layer++) {
-      if (!this.isLayerDirty[layer]) continue;
+      if (!this.activePlanes[layer]) continue;
       for (let i = 0; i < this.screen[layer].length; i += this.screenWidth) {
         for (let j = 0; j < this.screenWidth; j++) {
           this.screen[layer][i + j] = (j < this.screenWidth - scrollAmt) ? this.screen[layer][i + j + scrollAmt] : false;
