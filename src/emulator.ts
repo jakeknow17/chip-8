@@ -366,6 +366,7 @@ export class Emulator {
         // Fx0A - LD Vx, K
         else if (instByte1 === 0x0a) {
           this.waiting = true;
+          this.waitingReg = instNibble1;
           this.keyboard.startWait();
         }
         // Fx15 - LD DT, Vx
@@ -405,6 +406,8 @@ export class Emulator {
           for (let i = 0; i <= instNibble1; i++) {
             this.memory[this.registerI + i] = this.registers[i];
           }
+          // TODO: Implement toggling this as a quirk
+          this.registerI = (this.registerI + instNibble1 + 1) & 0xffff;
         }
         // Fx65 - LD Vx, [I]
         else if (instByte1 === 0x65) {
@@ -412,6 +415,8 @@ export class Emulator {
           for (let i = 0; i <= instNibble1; i++) {
             this.registers[i] = this.memory[this.registerI + i];
           }
+          // TODO: Implement toggling this as a quirk
+          this.registerI = (this.registerI + instNibble1 + 1) & 0xffff;
         }
         // Fx75 - LD R, Vx
         else if (instByte1 === 0x75) {

@@ -51,6 +51,8 @@ export class TimeoutTimer implements Timer {
   }
 
   private loop(): void {
+    if (!this.isStarted) return;
+
     this.lastTime = performance.now();
 
     for (let frames = 0; (TimeoutTimer.INTERVAL < this.lastTime - this.startTime) && frames < 2; this.startTime += TimeoutTimer.INTERVAL, frames++) {
