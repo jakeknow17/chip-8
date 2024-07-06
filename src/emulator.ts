@@ -275,6 +275,7 @@ export class Emulator {
         }
         // 8xy6 - SHR Vx {, Vy}
         else if ((instNibble3) === 0x6) {
+          // TODO: Add shift quirks toggling
           const flag = (this.registers[instNibble2] & 0x1) ? 1 : 0;
           this.registers[instNibble1] = this.registers[instNibble2] >>> 1;
           this.registers[0xf] = flag;
@@ -287,6 +288,7 @@ export class Emulator {
         }
         // 8xyE - SHL Vx, Vy
         else if ((instNibble3) === 0xe) {
+          // TODO: Add shift quirks toggling
           const flag = (this.registers[instNibble2] & 0x80) ? 1 : 0;
           this.registers[instNibble1] = this.registers[instNibble2] << 1;
           this.registers[0xf] = flag;
