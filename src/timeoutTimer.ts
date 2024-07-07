@@ -9,6 +9,7 @@ export class TimeoutTimer implements Timer {
   private tickCallback: () => void = () => { };
   private drawCallback: () => void = () => { };
   private timerCallback: () => void = () => { };
+  private audioRefreshCallback: (soundLength: number) => void = (_) => { };
 
   private startTime: number = 0;
   private lastTime: number = 0;
@@ -44,6 +45,10 @@ export class TimeoutTimer implements Timer {
     this.timerCallback = fun;
   }
 
+  setAudioRefreshCallback(fun: (soundLength: number) => void): void {
+    this.audioRefreshCallback = fun;
+  }
+
   setTicksPerFrame(ticks: number): void {
     this.lastTime = performance.now();
     this.startTime = this.lastTime + TimeoutTimer.INTERVAL / 2;
@@ -60,6 +65,7 @@ export class TimeoutTimer implements Timer {
         this.tickCallback();
       }
       this.timerCallback();
+      this.audioRefreshCallback(TimeoutTimer.INTERVAL / 1000);
     }
     this.drawCallback();
 

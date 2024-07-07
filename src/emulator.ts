@@ -68,6 +68,7 @@ export class Emulator {
   private pc = Emulator.PROG_START_ADDR;
   private sp = Emulator.STACK_SIZE;
   private registers = new Uint8Array(Emulator.NUM_REGS);
+  private pattern = new Uint8Array(16);
   private flagRegisters = new Uint8Array(Emulator.NUM_REGS);
   private registerI = 0;
 
@@ -86,6 +87,7 @@ export class Emulator {
     cycleTimer.setTickCallback(this.emulateCycle.bind(this));
     cycleTimer.setDrawCallback(this.display.drawScreen.bind(this.display));
     cycleTimer.setTimerCallback(this.updateTimers.bind(this));
+    cycleTimer.setAudioRefreshCallback(this.sound.refresh.bind(this.sound));
     this.initialize();
   }
 
@@ -117,19 +119,8 @@ export class Emulator {
   }
 
   private updateTimers() {
-    if (this.dt > 0) {
-      this.dt--;
-    }
-
-    if (this.st > 0) {
-      if (!this.sound.isPlaying())
-        this.sound.start();
-      this.st--;
-    }
-    else {
-      if (this.sound.isPlaying())
-        this.sound.stop();
-    }
+    this.dt -= (this.dt > 0 ? 1 : 0)
+    this.st -= (this.st > 0 ? 1 : 0)
   }
 
   emulateCycle() {
@@ -401,7 +392,9 @@ export class Emulator {
         }
         // XO-Chip audio
         else if ((inst & 0xfff) === 0x002) {
-          console.log("Audio not implemented");
+          for (let i = 0; i < 16; i++)
+            this.pattern[i] = this.memory[this.registerI + i];
+          this.sound.setBuffer(this.pattern);
         }
         // Fx07 - LD Vx, DT
         else if (instByte1 === 0x07) {
@@ -420,6 +413,7 @@ export class Emulator {
         // Fx18 - LD ST, Vx
         else if (instByte1 === 0x18) {
           this.st = this.registers[instNibble1];
+          this.sound.setTimer(this.st);
         }
         // Fx1E - ADD I, Vx
         else if (instByte1 === 0x1e) {
@@ -442,7 +436,7 @@ export class Emulator {
         }
         // XO-Chip pitch
         else if (instByte1 === 0x3a) {
-          console.log("Pitch not implemented");
+          this.sound.setPitch(this.registers[instNibble1]);
         }
         // Fx55 - LD [I], Vx
         else if (instByte1 === 0x55) {
@@ -488,7 +482,7 @@ export class Emulator {
   }
 
   setSoundFrequency(freqHz: number) {
-    this.sound.setFrequency(freqHz);
+    this.sound.setPitch(freqHz);
   }
 
   setSoundVolume(volume: number) {
@@ -501,6 +495,7 @@ export class Emulator {
     this.initializeChars();
     this.waiting = false;
     this.keyboard.clearWait();
+    this.sound.reset();
     this.display.clear();
     this.display.setExtended(false);
     if (this.rom)

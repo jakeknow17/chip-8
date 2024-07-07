@@ -5,5 +5,6 @@ export interface Timer {
   setTickCallback(fun: () => void): void;
   setDrawCallback(fun: () => void): void;
   setTimerCallback(fun: () => void): void;
+  setAudioRefreshCallback(fun: (soundLength: number) => void): void;
   setTicksPerFrame(ticks: number): void;
 }

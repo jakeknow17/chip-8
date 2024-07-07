@@ -1,7 +1,10 @@
 export interface Sound {
-  start(): void;
+  enable(): void;
   stop(): void;
-  isPlaying(): boolean;
-  setFrequency(frequency: number): void;
+  reset(): void;
+  refresh(soundLength: number): void;
+  setTimer(timer: number): void;
+  setBuffer(buffer: Uint8Array): void;
+  setPitch(pitch: number): void;
   setVolume(volume: number): void;
 }

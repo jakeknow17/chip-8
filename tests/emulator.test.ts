@@ -25,6 +25,7 @@ class MockTimer implements Timer {
   setTickCallback = jest.fn();
   setDrawCallback = jest.fn();
   setTimerCallback = jest.fn();
+  setAudioRefreshCallback = jest.fn();
   setTicksPerFrame = jest.fn();
 }
 
@@ -37,10 +38,13 @@ class MockKeyboard implements Keyboard {
 }
 
 class MockSound implements Sound {
-  start = jest.fn();
+  enable = jest.fn();
   stop = jest.fn();
-  isPlaying = jest.fn(() => false);
-  setFrequency = jest.fn();
+  reset = jest.fn();
+  refresh = jest.fn();
+  setTimer = jest.fn();
+  setBuffer = jest.fn();
+  setPitch = jest.fn();
   setVolume = jest.fn();
 }
 
