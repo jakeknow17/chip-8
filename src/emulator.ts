@@ -9,6 +9,16 @@ export class Emulator {
   static readonly NUM_REGS = 16;
   static readonly PROG_START_ADDR = 0x200;
 
+  private quirks = {
+    shift: false,
+    loadStore: false,
+    vfOrder: false,
+    clip: false,
+    jump: false,
+    logic: false,
+    vBlank: false
+  }
+
   private smallChars = new Uint8Array([
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -157,8 +167,10 @@ export class Emulator {
 
     switch (instNibble0) {
       case 0x0:
+        if (inst === 0x0000)
+          this.halt();
         // 00Cn - SCD nibble
-        if (instNibble2 === 0xc)
+        else if (instNibble2 === 0xc)
           this.display.scrollDown(instNibble3);
         // 00Dn - SCU nibble
         else if (instNibble2 === 0xd)
@@ -218,7 +230,7 @@ export class Emulator {
         break;
       case 0x5:
         // 5xy0 - SE Vx, Vy
-        if (this.registers[instNibble1] === this.registers[instNibble2]) {
+        if (instNibble3 === 0 && this.registers[instNibble1] === this.registers[instNibble2]) {
           const nextInstr = (this.memory[this.pc + 2] << 8) | this.memory[this.pc + 3];
           if (nextInstr === 0xf000)
             this.pc += 4;
@@ -231,7 +243,7 @@ export class Emulator {
             this.memory[this.registerI + i - instNibble1] = this.registers[i];
         }
         // XO-Chip load
-        else if (instNibble3 === 2) {
+        else if (instNibble3 === 3) {
           for (let i = instNibble1; i <= instNibble2; i++)
             this.registers[i] = this.memory[this.registerI + i - instNibble1];
         }
@@ -252,46 +264,76 @@ export class Emulator {
         // 8xy1 - OR Vx, Vy
         else if ((instNibble3) === 0x1) {
           this.registers[instNibble1] |= this.registers[instNibble2];
+          if (this.quirks.logic)
+            this.registers[0xf] = 0;
         }
         // 8xy2 - AND Vx, Vy
         else if ((instNibble3) === 0x2) {
           this.registers[instNibble1] &= this.registers[instNibble2];
+          if (this.quirks.logic)
+            this.registers[0xf] = 0;
         }
         // 8xy3 - XOR Vx, Vy
         else if ((instNibble3) === 0x3) {
           this.registers[instNibble1] ^= this.registers[instNibble2];
+          if (this.quirks.logic)
+            this.registers[0xf] = 0;
         }
         // 8xy4 - ADD Vx, Vy
         else if ((instNibble3) === 0x4) {
           const sum = this.registers[instNibble1] + this.registers[instNibble2];
           this.registers[instNibble1] = sum; // Automatically truncates value to 8 bits
           this.registers[0xf] = sum > 0xff ? 1 : 0; // Overflow
+          if (this.quirks.vfOrder)
+            this.registers[instNibble1] = sum;
         }
         // 8xy5 - SUB Vx, Vy
         else if ((instNibble3) === 0x5) {
           const diff = this.registers[instNibble1] - this.registers[instNibble2];
           this.registers[instNibble1] = diff; // Automatically truncates value to 8 bits
           this.registers[0xf] = diff < 0 ? 0 : 1; // Overflow
+          if (this.quirks.vfOrder)
+            this.registers[instNibble1] = diff;
         }
         // 8xy6 - SHR Vx {, Vy}
         else if ((instNibble3) === 0x6) {
-          // TODO: Add shift quirks toggling
-          const flag = (this.registers[instNibble2] & 0x1) ? 1 : 0;
-          this.registers[instNibble1] = this.registers[instNibble2] >>> 1;
+          let flag, val;
+          if (this.quirks.shift) {
+            flag = (this.registers[instNibble1] & 0x1) ? 1 : 0;
+            val = this.registers[instNibble1] >>> 1;
+          }
+          else {
+            flag = (this.registers[instNibble2] & 0x1) ? 1 : 0;
+            val = this.registers[instNibble2] >>> 1;
+          }
+          this.registers[instNibble1] = val;
           this.registers[0xf] = flag;
+          if (this.quirks.vfOrder)
+            this.registers[instNibble1] = val;
         }
         // 8xy7 - SUBN Vx, Vy
         else if ((instNibble3) === 0x7) {
           const diff = this.registers[instNibble2] - this.registers[instNibble1];
           this.registers[instNibble1] = diff; // Automatically truncates value to 8 bits
           this.registers[0xf] = diff < 0 ? 0 : 1; // Overflow
+          if (this.quirks.vfOrder)
+            this.registers[instNibble1] = diff;
         }
         // 8xyE - SHL Vx, Vy
         else if ((instNibble3) === 0xe) {
-          // TODO: Add shift quirks toggling
-          const flag = (this.registers[instNibble2] & 0x80) ? 1 : 0;
-          this.registers[instNibble1] = this.registers[instNibble2] << 1;
+          let flag, val;
+          if (this.quirks.shift) {
+            flag = (this.registers[instNibble1] & 0x80) ? 1 : 0;
+            val = this.registers[instNibble1] << 1;
+          }
+          else {
+            flag = (this.registers[instNibble2] & 0x80) ? 1 : 0;
+            val = this.registers[instNibble2] << 1;
+          }
+          this.registers[instNibble1] = val;
           this.registers[0xf] = flag;
+          if (this.quirks.vfOrder)
+            this.registers[instNibble1] = val;
         }
         break
       case 0x9:
