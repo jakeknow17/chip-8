@@ -58,14 +58,12 @@ export class CanvasDisplay implements Display {
         this.width = entry.contentRect.width
         this.height = entry.contentRect.height
       }
-      console.log("Dimensions changed", entries)
     })
     this.resizeObserver.observe(canvas)
 
     // Setup screen
     this.screen = this.createBlankScreen();
     this.prevScreen = this.createBlankScreen();
-    this.clear()
 
     this.activePlanes[0] = true;
   }
@@ -103,7 +101,7 @@ export class CanvasDisplay implements Display {
     this.ctx.fillRect(0, 0, this.width, this.height)
   }
 
-  drawPixel(set: boolean, x: number, y: number) {
+  private drawPixel(set: boolean, x: number, y: number) {
     const idx = y * this.screenWidth + x;
 
     let collision = false;
@@ -118,7 +116,7 @@ export class CanvasDisplay implements Display {
     return collision
   }
 
-  drawByte(byte: number, x: number, y: number) {
+  private drawByte(byte: number, x: number, y: number) {
     let collision = false
 
     for (let i = 0; i < BYTE_SIZE; i++) {
