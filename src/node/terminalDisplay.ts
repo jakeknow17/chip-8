@@ -7,8 +7,9 @@ export class TerminalDisplay implements Display {
 
   constructor() {
     this.terminal = blessed.screen({
-      smartCSR: true
-    })
+      smartCSR: true,
+      title: "XO-Chip"
+    });
   }
 
   clear(): void {
@@ -16,7 +17,7 @@ export class TerminalDisplay implements Display {
   }
 
   drawScreen(): void {
-
+    this.terminal.render();
   }
 
   drawSprite(sprite: Uint8Array, x: number, y: number, isWide?: boolean): boolean {

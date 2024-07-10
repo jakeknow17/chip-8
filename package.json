@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "This repository is a simple, lightweight Javascript Chip-8 emulator.",
   "main": "dist/index.js",
+  "type": "module",
   "directories": {
     "test": "tests"
   },
@@ -10,7 +11,8 @@
     "build": "tsc --build && webpack --mode production",
     "clean": "tsc --build --clean && rimraf --glob web/dist/*",
     "test": "jest",
-    "test-coverage": "jest --coverage"
+    "test-coverage": "jest --coverage",
+    "start:terminal": "node ./scripts/terminal.js"
   },
   "author": "Jacob Knowlton",
   "license": "ISC",
