@@ -1,7 +1,7 @@
 import { RunnableEmulator } from "./interfaces/runnableEmulator.js";
 
 import { Emulator } from "./emulator.js";
-import { TimeoutTimer } from "./timeoutTimer.js";
+import { IntervalTimer } from "./timeoutTimer.js";
 import { TerminalKeyboard } from "./node/terminalKeyboard.js";
 import { TerminalDisplay } from "./node/terminalDisplay.js";
 import { SilentSound } from "./node/silentSound.js";
@@ -13,7 +13,7 @@ export class TerminalEmulator implements RunnableEmulator {
   constructor() {
     this.emulator = new Emulator(
       new TerminalDisplay(),
-      new TimeoutTimer(),
+      new IntervalTimer(),
       new TerminalKeyboard(),
       new SilentSound()
     );

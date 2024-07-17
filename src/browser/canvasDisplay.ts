@@ -1,6 +1,6 @@
-const BYTE_SIZE = 8
-
 import { Display, HexColor } from "../interfaces/display.js"
+
+const BYTE_SIZE = 8
 
 export class CanvasDisplay implements Display {
   static readonly LOW_RES_WIDTH = 64;

@@ -1,7 +1,7 @@
 import { RunnableEmulator } from "./interfaces/runnableEmulator";
 
 import { Emulator } from "./emulator";
-import { TimeoutTimer } from "./timeoutTimer";
+import { IntervalTimer } from "./timeoutTimer";
 import { BrowserKeyboard } from "./browser/browserKeyboard";
 import { AudioWorkletSound } from "./browser/audioWorkletSound";
 import { CanvasDisplay } from "./browser/canvasDisplay";
@@ -12,7 +12,7 @@ export class WebEmulator implements RunnableEmulator {
   constructor(canvas: HTMLCanvasElement) {
     this.emulator = new Emulator(
       new CanvasDisplay(canvas),
-      new TimeoutTimer(),
+      new IntervalTimer(),
       new BrowserKeyboard(),
       new AudioWorkletSound()
     );

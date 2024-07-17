@@ -1,6 +1,8 @@
 import { Display, HexColor } from "../interfaces/display.js"
 import blessed from "blessed";
 
+const BYTE_SIZE = 8
+
 export class TerminalDisplay implements Display {
   static readonly LOW_RES_WIDTH = 64;
   static readonly LOW_RES_HEIGHT = 32;
@@ -9,7 +11,8 @@ export class TerminalDisplay implements Display {
 
   static readonly NUM_LAYERS = 2;
 
-  chars = [' ', '▘', '▝', '▀', '▖', '▌', '▞', '▛', '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█']
+  lowResChars = [' ', '█']
+  highResChars = [' ', '▘', '▝', '▀', '▖', '▌', '▞', '▛', '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█']
 
   screen: Array<Array<Boolean>>
   prevScreen: Array<Array<Boolean>>
@@ -71,7 +74,7 @@ export class TerminalDisplay implements Display {
       return process.exit(0);
     })
 
-    this.box.setContent(this.chars.join(''));
+    this.box.setContent(this.highResChars.join(''));
 
     this.screenWidth = TerminalDisplay.LOW_RES_WIDTH;
     this.screenHeight = TerminalDisplay.LOW_RES_HEIGHT;
@@ -109,9 +112,58 @@ export class TerminalDisplay implements Display {
     this.terminal.render();
   }
 
-  drawSprite(sprite: Uint8Array, x: number, y: number, isWide?: boolean): boolean {
-    console.log(sprite, x, y, isWide);
-    return false;
+  private drawPixel(set: boolean, x: number, y: number) {
+    const idx = y * this.screenWidth + x;
+
+    let collision = false;
+    for (let plane = 0; plane < this.activePlanes.length; plane++) {
+      if (!this.activePlanes[plane]) continue;
+      const prev = this.screen[plane][idx];
+      this.screen[plane][idx] = this.screen[plane][idx] !== set
+
+      collision ||= prev && !this.screen[plane][idx]
+    }
+
+    return collision
+  }
+
+  private drawByte(byte: number, x: number, y: number) {
+    let collision = false
+
+    for (let i = 0; i < BYTE_SIZE; i++) {
+      const isSet = Boolean(byte & (0x80 >> i))
+      const collided = this.drawPixel(isSet, (x + i) % this.screenWidth, y);
+      collision ||= collided;
+    }
+
+    return collision
+  }
+
+  drawSprite(sprite: Uint8Array, x: number, y: number, isWide = false): boolean {
+    console.log("Drawing sprite");
+    for (let plane = 0; plane < this.activePlanes.length; plane++) {
+      if (!this.activePlanes[plane]) continue;
+      this.isLayerChanged[plane] = true;
+    }
+
+    let collision = false;
+
+    if (isWide) { // This should only ever be used with 16x16 sprites
+      for (let i = 0; i < sprite.length; i += 2) {
+        const collided1 = this.drawByte(sprite[i], x, (y + i / 2) % this.screenHeight);
+        const collided2 = this.drawByte(sprite[i + 1], x + 8, (y + i / 2) % this.screenHeight);
+        collision ||= collided1;
+        collision ||= collided2;
+      }
+    }
+    else {
+      for (let i = 0; i < sprite.length; i++) {
+        const collided = this.drawByte(sprite[i], x, (y + i) % this.screenHeight);
+        collision ||= collided;
+      }
+    }
+
+    return collision
   }
 
   setExtended(extended: boolean): void {

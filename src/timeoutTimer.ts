@@ -1,8 +1,8 @@
 import { Timer } from "./interfaces/timer.js"
 
-export class TimeoutTimer implements Timer {
+export class IntervalTimer implements Timer {
   static readonly FRAMES_PER_SECOND = 60;
-  static readonly INTERVAL = 1000 / TimeoutTimer.FRAMES_PER_SECOND;
+  static readonly INTERVAL = 1000 / IntervalTimer.FRAMES_PER_SECOND;
 
   private isStarted = false;
   private ticksPerFrame: number = 8;
@@ -14,19 +14,27 @@ export class TimeoutTimer implements Timer {
   private startTime: number = 0;
   private lastTime: number = 0;
 
+  private intervalId: NodeJS.Timeout | number | null = null;
+
   constructor() {
     this.loop = this.loop.bind(this);
   }
 
   start(): void {
+    if (this.isStarted)
+      return;
     this.isStarted = true;
     this.lastTime = performance.now();
-    this.startTime = this.lastTime + TimeoutTimer.INTERVAL / 2;
-    setTimeout(this.loop, TimeoutTimer.INTERVAL);
+    this.startTime = this.lastTime + IntervalTimer.INTERVAL / 2;
+    this.intervalId = setInterval(this.loop, IntervalTimer.INTERVAL);
   }
 
   stop(): void {
     this.isStarted = false;
+    if (this.intervalId !== null) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
   }
 
   isRunning(): boolean {
@@ -51,7 +59,7 @@ export class TimeoutTimer implements Timer {
 
   setTicksPerFrame(ticks: number): void {
     this.lastTime = performance.now();
-    this.startTime = this.lastTime + TimeoutTimer.INTERVAL / 2;
+    this.startTime = this.lastTime + IntervalTimer.INTERVAL / 2;
     this.ticksPerFrame = ticks;
   }
 
@@ -60,15 +68,15 @@ export class TimeoutTimer implements Timer {
 
     this.lastTime = performance.now();
 
-    for (let frames = 0; (TimeoutTimer.INTERVAL < this.lastTime - this.startTime) && frames < 2; this.startTime += TimeoutTimer.INTERVAL, frames++) {
+    for (let frames = 0; (IntervalTimer.INTERVAL < this.lastTime - this.startTime) && frames < 2; this.startTime += IntervalTimer.INTERVAL, frames++) {
       for (let i = 0; i < this.ticksPerFrame; i++) {
         this.tickCallback();
       }
       this.timerCallback();
-      this.audioRefreshCallback(TimeoutTimer.INTERVAL / 1000);
+      this.audioRefreshCallback(IntervalTimer.INTERVAL / 1000);
     }
     this.drawCallback();
 
-    setTimeout(this.loop, TimeoutTimer.INTERVAL);
+    setTimeout(this.loop, IntervalTimer.INTERVAL);
   }
 }
