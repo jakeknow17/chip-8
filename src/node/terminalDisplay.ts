@@ -1,44 +1,15 @@
-import { Display, HexColor } from "../interfaces/display.js"
+import { Display } from "../abstract/display.js"
 import blessed from "blessed";
 
-const BYTE_SIZE = 8
-
-export class TerminalDisplay implements Display {
-  static readonly LOW_RES_WIDTH = 64;
-  static readonly LOW_RES_HEIGHT = 32;
-  static readonly HIGH_RES_WIDTH = 128;
-  static readonly HIGH_RES_HEIGHT = 64;
-
-  static readonly NUM_LAYERS = 2;
-
+export class TerminalDisplay extends Display {
   lowResChars = [' ', '█']
   highResChars = [' ', '▘', '▝', '▀', '▖', '▌', '▞', '▛', '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█']
-
-  screen: Array<Array<Boolean>>
-  prevScreen: Array<Array<Boolean>>
-
-  screenWidth: number;
-  screenHeight: number;
-
-  activePlanes = new Array(TerminalDisplay.NUM_LAYERS).fill(false); // Bitmask from 0 to 3 inclusive
-  isLayerChanged = new Array(TerminalDisplay.NUM_LAYERS).fill(false);
-  // TODO: Set different layer colors
-  layerColors: {
-    color00: HexColor,
-    color01: HexColor,
-    color10: HexColor,
-    color11: HexColor
-  } = {
-      color00: "#996600",
-      color01: "#ffcc00",
-      color10: "#ff6600",
-      color11: "#662200",
-    }
 
   terminal: blessed.Widgets.Screen;
   box: blessed.Widgets.BoxElement;
 
   constructor() {
+    super();
     this.terminal = blessed.screen({
       smartCSR: true,
       title: "XO-Chip",
@@ -74,8 +45,6 @@ export class TerminalDisplay implements Display {
       return process.exit(0);
     })
 
-    this.box.setContent(this.highResChars.join(''));
-
     this.screenWidth = TerminalDisplay.LOW_RES_WIDTH;
     this.screenHeight = TerminalDisplay.LOW_RES_HEIGHT;
 
@@ -85,108 +54,11 @@ export class TerminalDisplay implements Display {
     this.terminal.render();
   }
 
-  private createBlankScreen(): Array<Array<boolean>> {
-    return Array.from({ length: TerminalDisplay.NUM_LAYERS }, () => Array(this.screenWidth * this.screenHeight).fill(false))
-  }
-
-  // private getColor(x: number, y: number): HexColor {
-  //   const idx = y * this.screenWidth + x;
-  //   const layer0Pixel = this.screen[0][idx];
-  //   const layer1Pixel = this.screen[1][idx];
-  //
-  //   if (!layer0Pixel && !layer1Pixel)
-  //     return this.layerColors.color00;
-  //   else if (layer0Pixel && !layer1Pixel)
-  //     return this.layerColors.color01;
-  //   else if (!layer0Pixel && layer1Pixel)
-  //     return this.layerColors.color10;
-  //   else
-  //     return this.layerColors.color11
-  // }
-
   clear(): void {
 
   }
 
   drawScreen(): void {
     this.terminal.render();
-  }
-
-  private drawPixel(set: boolean, x: number, y: number) {
-    const idx = y * this.screenWidth + x;
-
-    let collision = false;
-    for (let plane = 0; plane < this.activePlanes.length; plane++) {
-      if (!this.activePlanes[plane]) continue;
-      const prev = this.screen[plane][idx];
-      this.screen[plane][idx] = this.screen[plane][idx] !== set
-
-      collision ||= prev && !this.screen[plane][idx]
-    }
-
-    return collision
-  }
-
-  private drawByte(byte: number, x: number, y: number) {
-    let collision = false
-
-    for (let i = 0; i < BYTE_SIZE; i++) {
-      const isSet = Boolean(byte & (0x80 >> i))
-      const collided = this.drawPixel(isSet, (x + i) % this.screenWidth, y);
-      collision ||= collided;
-    }
-
-    return collision
-  }
-
-  drawSprite(sprite: Uint8Array, x: number, y: number, isWide = false): boolean {
-    console.log("Drawing sprite");
-    for (let plane = 0; plane < this.activePlanes.length; plane++) {
-      if (!this.activePlanes[plane]) continue;
-      this.isLayerChanged[plane] = true;
-    }
-
-    let collision = false;
-
-    if (isWide) { // This should only ever be used with 16x16 sprites
-      for (let i = 0; i < sprite.length; i += 2) {
-        const collided1 = this.drawByte(sprite[i], x, (y + i / 2) % this.screenHeight);
-        const collided2 = this.drawByte(sprite[i + 1], x + 8, (y + i / 2) % this.screenHeight);
-        collision ||= collided1;
-        collision ||= collided2;
-      }
-    }
-    else {
-      for (let i = 0; i < sprite.length; i++) {
-        const collided = this.drawByte(sprite[i], x, (y + i) % this.screenHeight);
-        collision ||= collided;
-      }
-    }
-
-    return collision
-  }
-
-  setExtended(extended: boolean): void {
-    console.log(extended);
-  }
-
-  setPlaneBitmask(plane: number): void {
-    console.log(plane);
-  }
-
-  scrollDown(scrollAmt: number): void {
-    console.log(scrollAmt);
-  }
-
-  scrollUp(scrollAmt: number): void {
-    console.log(scrollAmt);
-  }
-
-  scrollRight(scrollAmt: number): void {
-    console.log(scrollAmt);
-  }
-
-  scrollLeft(scrollAmt: number): void {
-    console.log(scrollAmt);
   }
 }

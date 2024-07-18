@@ -9,6 +9,7 @@ const frequencySlider = document.getElementById("frequency");
 const volumeSlider = document.getElementById("volume");
 
 const emu = new Chip8.WebEmulator(canvas);
+emu.setLogLevel(0);
 
 let rom;
 

@@ -5,19 +5,28 @@ import { IntervalTimer } from "./timeoutTimer.js";
 import { TerminalKeyboard } from "./node/terminalKeyboard.js";
 import { TerminalDisplay } from "./node/terminalDisplay.js";
 import { SilentSound } from "./node/silentSound.js";
-
+import { NodeLogger } from "./node/nodeLogger.js";
+import { LogLevel } from "./abstract/logger.js";
 
 export class TerminalEmulator implements RunnableEmulator {
   emulator: Emulator;
 
   constructor() {
+    const logger = new NodeLogger(LogLevel.OFF);
+    logger.enableFileLogging(true, "./log.txt");
+
     this.emulator = new Emulator(
       new TerminalDisplay(),
       new IntervalTimer(),
       new TerminalKeyboard(),
-      new SilentSound()
+      new SilentSound(),
+      logger
     );
-  }; 
+  };
+
+  setLogLevel(level: LogLevel) {
+    this.emulator.setLogLevel(level);
+  }
 
   load(rom: Uint8Array): void {
     this.emulator.load(rom);

@@ -2,9 +2,11 @@ import { RunnableEmulator } from "./interfaces/runnableEmulator";
 
 import { Emulator } from "./emulator";
 import { IntervalTimer } from "./timeoutTimer";
-import { BrowserKeyboard } from "./browser/browserKeyboard";
-import { AudioWorkletSound } from "./browser/audioWorkletSound";
-import { CanvasDisplay } from "./browser/canvasDisplay";
+import { BrowserKeyboard } from "./web/browserKeyboard";
+import { AudioWorkletSound } from "./web/audioWorkletSound";
+import { CanvasDisplay } from "./web/canvasDisplay";
+import { WebLogger } from "./web/webLogger";
+import { LogLevel } from "./abstract/logger";
 
 export class WebEmulator implements RunnableEmulator {
   emulator: Emulator;
@@ -14,9 +16,14 @@ export class WebEmulator implements RunnableEmulator {
       new CanvasDisplay(canvas),
       new IntervalTimer(),
       new BrowserKeyboard(),
-      new AudioWorkletSound()
+      new AudioWorkletSound(),
+      new WebLogger(LogLevel.OFF)
     );
-  }; 
+  };
+
+  setLogLevel(level: LogLevel) {
+    this.emulator.setLogLevel(level);
+  }
 
   load(rom: Uint8Array): void {
     this.emulator.load(rom);

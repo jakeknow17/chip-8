@@ -2,6 +2,7 @@ import { Display } from "./interfaces/display.js"
 import { Timer } from "./interfaces/timer.js";
 import { Keyboard } from "./interfaces/keyboard.js";
 import { Sound } from "./interfaces/sound.js";
+import { Logger, LogLevel } from "./abstract/logger.js";
 
 export class Emulator {
   static readonly MEM_SIZE = 0x10000;
@@ -79,11 +80,14 @@ export class Emulator {
   private waitingReg = -1;
   private halted = false;
 
-  constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound) {
+  private logger;
+
+  constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound, logger: Logger) {
     this.display = display;
     this.timer = cycleTimer;
     this.keyboard = keyboard;
     this.sound = sound;
+    this.logger = logger;
     cycleTimer.setTickCallback(this.emulateCycle.bind(this));
     cycleTimer.setDrawCallback(this.display.drawScreen.bind(this.display));
     cycleTimer.setTimerCallback(this.updateTimers.bind(this));
@@ -91,9 +95,14 @@ export class Emulator {
     this.initialize();
   }
 
+  setLogLevel(level: LogLevel) {
+    this.logger.setLevel(level);
+  }
+
   load(rom: Uint8Array) {
     this.rom = new Uint8Array(rom);
     this.memory.set(this.rom, Emulator.PROG_START_ADDR);
+    this.logger.info("Rom loaded");
   }
 
   private halt() {
