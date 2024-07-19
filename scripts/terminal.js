@@ -1,6 +1,7 @@
 import fs from 'fs';
 import readline from 'readline';
 import { TerminalEmulator } from "../dist/terminalEmulator.js";
+import { LogLevel } from '../dist/abstract/logger.js';
 
 let romPath;
 
@@ -37,5 +38,6 @@ else {
 const rom = loadRom(romPath);
 
 const emu = new TerminalEmulator();
+emu.setLogLevel(LogLevel.DEBUG);
 emu.load(rom);
 emu.start();

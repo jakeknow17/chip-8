@@ -1,4 +1,5 @@
-import { Logger, LogLevel } from '../abstract/logger';
+import { Logger, LogLevel } from '../abstract/logger.js';
+import fs from 'fs';
 
 export class NodeLogger extends Logger {
   private logToFile: boolean;
@@ -7,33 +8,28 @@ export class NodeLogger extends Logger {
   constructor(level: LogLevel = LogLevel.INFO, logToConsole: boolean = true, logToFile: boolean = false, logFilePath?: string) {
     super(level, logToConsole);
     this.logToFile = logToFile;
-    if (logToFile && logFilePath) {
+    if (logToFile && logFilePath)
       this.logFilePath = logFilePath;
-    }
   }
 
   enableFileLogging(enable: boolean, logFilePath?: string) {
     this.logToFile = enable;
-    if (logFilePath) {
+    if (logFilePath)
       this.logFilePath = logFilePath;
-    }
   }
 
   log(level: LogLevel, message: string) {
-    if (level < this.currentLevel) {
+    if (level < this.currentLevel)
       return;
-    }
 
     const levelStr = LogLevel[level];
     const logMessage = `[${new Date().toISOString()}] [${levelStr}] ${message}`;
 
-    if (this.logToConsole) {
+    if (this.logToConsole)
       console.log(logMessage);
-    }
 
-    if (this.logToFile && this.logFilePath) {
-      const fs = require('fs');
+    if (this.logToFile && this.logFilePath)
       fs.appendFileSync(this.logFilePath, logMessage + '\n', 'utf8');
-    }
+
   }
 }

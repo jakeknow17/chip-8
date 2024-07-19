@@ -108,6 +108,7 @@ export class Emulator {
   private halt() {
     this.halted = true;
     this.pause();
+    this.logger.warn("Emulator halted");
   }
 
   private initialize() {
@@ -118,6 +119,7 @@ export class Emulator {
     this.registers.fill(0);
     this.flagRegisters.fill(0);
     this.registerI = 0;
+    this.logger.info("Rom initialized");
   }
 
   private initializeChars() {
@@ -125,6 +127,7 @@ export class Emulator {
     // Place these at the beginning of memory
     this.memory.set(this.smallChars);
     this.memory.set(this.bigChars, this.smallChars.length);
+    this.logger.debug("Character sets initialized");
   }
 
   private updateTimers() {
@@ -133,15 +136,17 @@ export class Emulator {
   }
 
   emulateCycle() {
-    if (this.halted)
+    if (this.halted) {
+      this.logger.warn("Emulation cycle halted");
       return;
+    }
 
     if (this.waiting) {
       if (this.keyboard.getWaitKey() !== null) {
         this.registers[this.waitingReg] = this.keyboard.getWaitKey() as number;
         this.keyboard.clearWaitKey();
-        this.waitingReg = -1;
         this.waiting = false;
+        this.logger.debug(`Key wait completed - Register ${this.waitingReg} set to ${this.registers[this.waitingReg]}`);
       }
       else return;
     }
@@ -164,6 +169,8 @@ export class Emulator {
     //        --byte0-- --byte1--
     //        ----instruction----
     //
+    
+    this.logger.debug(`Executing instruction ${inst.toString(16)}`);
 
     switch (instNibble0) {
       case 0x0:
@@ -509,23 +516,27 @@ export class Emulator {
     this.display.setExtended(false);
     if (this.rom)
       this.memory.set(this.rom, Emulator.PROG_START_ADDR);
+    this.logger.info("Emulator reset");
   }
 
   start() {
     if (!this.rom) {
-      console.log("No ROM loaded");
+      this.logger.error("No ROM loaded");
       return;
     }
     this.reset();
 
     this.timer.start();
+    this.logger.info("Emulator started");
   }
 
   pause() {
     this.timer.stop();
+    this.logger.info("Emulator paused");
   }
 
   continue() {
     this.timer.start();
+    this.logger.info("Emulator resumed");
   }
 }

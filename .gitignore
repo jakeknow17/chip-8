@@ -1,4 +1,5 @@
 *.tsbuildinfo
+log.txt
 dist/
 node_modules/
 coverage/

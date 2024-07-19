@@ -12,7 +12,8 @@ export class TerminalEmulator implements RunnableEmulator {
   emulator: Emulator;
 
   constructor() {
-    const logger = new NodeLogger(LogLevel.OFF);
+    const logger = new NodeLogger();
+    logger.setLevel(LogLevel.OFF);
     logger.enableFileLogging(true, "./log.txt");
 
     this.emulator = new Emulator(
