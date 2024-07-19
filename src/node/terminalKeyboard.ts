@@ -2,7 +2,7 @@ import { Keyboard } from "../interfaces/keyboard";
 
 export class TerminalKeyboard implements Keyboard {
   isPressed(key: number): boolean {
-    return key ? true : false;
+    return key ? false : true;
   }
 
   clearWait(): void {

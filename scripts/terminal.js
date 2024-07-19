@@ -19,8 +19,7 @@ function readRomPath() {
 
 function loadRom(path) {
   try {
-    const data = fs.readFileSync(path);
-    console.log(data);
+    return fs.readFileSync(path);
   }
   catch (err) {
     console.log(err);
@@ -39,5 +38,6 @@ const rom = loadRom(romPath);
 
 const emu = new TerminalEmulator();
 emu.setLogLevel(LogLevel.DEBUG);
+emu.setEmulationSpeed(1000);
 emu.load(rom);
 emu.start();

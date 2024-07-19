@@ -80,7 +80,7 @@ export class Emulator {
   private waitingReg = -1;
   private halted = false;
 
-  private logger;
+  private logger: Logger;
 
   constructor(display: Display, cycleTimer: Timer, keyboard: Keyboard, sound: Sound, logger: Logger) {
     this.display = display;
