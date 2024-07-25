@@ -1,4 +1,5 @@
 import { RunnableEmulator } from "./interfaces/runnableEmulator.js";
+import terminalKit from "terminal-kit";
 
 import { Emulator } from "./emulator.js";
 import { IntervalTimer } from "./timeoutTimer.js";
@@ -17,10 +18,12 @@ export class TerminalEmulator implements RunnableEmulator {
     logger.setLevel(LogLevel.OFF);
     logger.enableFileLogging(false, "./log.txt");
 
+    const term = terminalKit.createTerminal();
+
     this.emulator = new Emulator(
-      new TerminalDisplay(),
+      new TerminalDisplay(term),
       new IntervalTimer(),
-      new TerminalKeyboard(),
+      new TerminalKeyboard(term),
       new SilentSound(),
       logger
     );

@@ -1,11 +1,44 @@
+import terminalKit, { ScreenBuffer, Terminal } from "terminal-kit";
+
 import { Display } from "../abstract/display.js"
 
 export class TerminalDisplay extends Display {
   lowResChars = [' ', '█']
   highResChars = [' ', '▘', '▝', '▀', '▖', '▌', '▞', '▛', '▗', '▚', '▐', '▜', '▄', '▙', '▟', '█']
 
-  constructor() {
+  terminal: Terminal;
+  screenBuffer: ScreenBuffer;
+
+  i = 0;
+
+  constructor(terminal: Terminal) {
     super();
+
+    this.terminal = terminal;
+    this.terminal.fullscreen(true);
+
+    // this.terminal.grabInput(true);
+    // this.terminal.on("key", (name: any, matches: any, data: any) => {
+    //   console.log(name, matches, data);
+    //   if (name === "q") process.exit();
+    // })
+    // this.terminal.inputField((_, name) => {
+    //   this.terminal.green("\nHello!\n", name, "\n");
+    //   process.exit();
+    // })
+
+    this.screenBuffer = new terminalKit.ScreenBuffer({
+      dst: this.terminal
+    });
+    // this.screenBuffer.put({
+    //   x: 0,
+    //   y: 0,
+    //   attr: 255,
+    //   wrap: false,
+    //   dx: 1,
+    //   dy: 0
+    // }, `Hello ${i++}\nTest`)
+    // this.screenBuffer.draw();
   }
 
   clear(): void {

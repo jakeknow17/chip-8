@@ -1,6 +1,6 @@
-import { Display } from "./interfaces/display.js"
+import { Display } from "./abstract/display.js"
 import { Timer } from "./interfaces/timer.js";
-import { Keyboard } from "./interfaces/keyboard.js";
+import { Keyboard } from "./abstract/keyboard.js";
 import { Sound } from "./interfaces/sound.js";
 import { Logger, LogLevel } from "./abstract/logger.js";
 
