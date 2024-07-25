@@ -1,23 +1,7 @@
-import { Keyboard } from "../interfaces/keyboard";
+import { Keyboard } from "../abstract/keyboard";
 
-export class TerminalKeyboard implements Keyboard {
-  isPressed(key: number): boolean {
-    return key ? false : true;
-  }
-
-  clearWait(): void {
-
-  }
-
-  startWait(): void {
-
-  }
-
-  getWaitKey(): number | null {
-    return null;
-  }
-
-  clearWaitKey(): void {
-
+export class TerminalKeyboard extends Keyboard {
+  constructor() {
+    super();
   }
 }
